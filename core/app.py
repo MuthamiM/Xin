@@ -1,17 +1,21 @@
+import os
 import time
 from flask import Flask, render_template, jsonify
 from core.config import Config
 from features.security.middleware import attach_security_middleware, security_controller
 from features.security.error_handlers import register_error_handlers
-from features.security.geofence import enforce_regional_lock
 from features.streaming.routes import streaming_bp
 from features.chat.routes import chat_bp
 
 def create_app():
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    template_dir = os.path.join(base_dir, "shared", "templates")
+    static_dir = os.path.join(base_dir, "shared", "static")
+
     app = Flask(
         __name__,
-        template_folder="../shared/templates",
-        static_folder="../shared/static"
+        template_folder=template_dir,
+        static_folder=static_dir
     )
     app.config.from_object(Config)
 
@@ -19,17 +23,15 @@ def create_app():
     attach_security_middleware(app)
     register_error_handlers(app)
 
-    # Register feature blueprints
+    # Register blueprints
     app.register_blueprint(streaming_bp)
     app.register_blueprint(chat_bp)
 
     @app.route("/")
-    @enforce_regional_lock
     def index():
         return render_template("index.html")
 
     @app.route("/studio")
-    @enforce_regional_lock
     def studio():
         return render_template("studio.html")
 
