@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xin - 1-on-1 Video Stream</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0b0c10;
+      color: #c5c6c7;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Header */
+    header {
+      background: #1f2833;
+      border-bottom: 2px solid #45a29e;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #66fcf1;
+      text-transform: uppercase;
+    }
+    .brand span {
+      font-size: 12px;
+      color: #c5c6c7;
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+    .network-badge {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    .tag {
+      background: #0b0c10;
+      border: 1px solid #45a29e;
+      color: #66fcf1;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .tag-live {
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+    .nav-links a {
+      color: #66fcf1;
+      text-decoration: none;
+      font-size: 12px;
+      font-family: monospace;
+      padding: 4px 10px;
+      border: 1px solid #45a29e;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover {
+      background: #45a29e;
+      color: #0b0c10;
+    }
+
+    /* Main Container */
+    .main-container {
+      flex: 1;
+      display: flex;
+      padding: 12px;
+      gap: 12px;
+      height: calc(100vh - 58px);
+      overflow: hidden;
+    }
+
+    /* Left Side: Video Panes */
+    .video-section {
+      flex: 1.25;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+    }
+    .video-grid {
+      flex: 1;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+    .video-box {
+      background: #000;
+      border: 1px solid #1f2833;
+      border-radius: 6px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .video-box.active-box {
+      border-color: #45a29e;
+    }
+    .video-box img, .video-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-label {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      background: rgba(11, 12, 16, 0.85);
+      border: 1px solid #45a29e;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #66fcf1;
+      letter-spacing: 0.5px;
+      z-index: 10;
+    }
+    .fps-badge {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: rgba(11, 12, 16, 0.85);
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #22c55e;
+      z-index: 10;
+    }
+    .video-fallback-msg {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    /* Video Control Bar */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #1f2833;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      background: #0b0c10;
+      border: 1px solid #45a29e;
+      color: #66fcf1;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #45a29e;
+      color: #0b0c10;
+    }
+    .btn-danger {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .btn-danger:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+    .btn-action {
+      background: #45a29e;
+      color: #0b0c10;
+    }
+    .btn-action:hover {
+      background: #66fcf1;
+    }
+    .filter-select {
+      background: #0b0c10;
+      border: 1px solid #45a29e;
+      color: #66fcf1;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Right Side: Omegle Chat */
+    .chat-section {
+      flex: 1;
+      background: #1f2833;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #161c24;
+      padding: 10px 14px;
+      border-bottom: 1px solid #374151;
+      font-family: monospace;
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #0d1117;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .msg-line {
+      word-wrap: break-word;
+    }
+    .msg-system {
+      color: #f59e0b;
+      font-size: 12px;
+      font-family: monospace;
+      background: rgba(245, 158, 11, 0.08);
+      padding: 4px 8px;
+      border-left: 2px solid #f59e0b;
+      border-radius: 2px;
+    }
+    .msg-stranger {
+      color: #ef4444;
+      font-weight: 700;
+    }
+    .msg-stranger .msg-text {
+      color: #f3f4f6;
+      font-weight: 400;
+    }
+    .msg-you {
+      color: #3b82f6;
+      font-weight: 700;
+    }
+    .msg-you .msg-text {
+      color: #f3f4f6;
+      font-weight: 400;
+    }
+    .chat-input-area {
+      padding: 10px;
+      background: #161c24;
+      border-top: 1px solid #374151;
+      display: flex;
+      gap: 8px;
+    }
+    .chat-input {
+      flex: 1;
+      background: #0b0c10;
+      border: 1px solid #45a29e;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+    }
+    .chat-input:focus {
+      border-color: #66fcf1;
+    }
+    .send-btn {
+      background: #45a29e;
+      color: #0b0c10;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+    .send-btn:hover {
+      background: #66fcf1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>Xin</h1>
+      <span>[1-ON-1 STREAM DIRECT]</span>
+    </div>
+    <div class="network-badge">
+      <div class="tag tag-live">DIRECT MESH: ONLINE</div>
+      <div class="tag">REGIONS: EA / SA / ASIA</div>
+      <div class="tag">PORT: 5000</div>
+      <div class="nav-links">
+        <a href="/studio">ENGINE STUDIO</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- Video Screens (Omegle 1-on-1 Split) -->
+    <div class="video-section">
+      <div class="video-grid">
+        <!-- Stranger / Phone Camera Feed -->
+        <div class="video-box active-box">
+          <div class="video-label">STRANGER // REMOTE FEED [192.168.1.201]</div>
+          <div class="fps-badge" id="remoteFps">30 FPS</div>
+          <img id="remoteVideo" src="/video_feed" alt="Stranger Stream">
+        </div>
+
+        <!-- You / Laptop Local Webcam -->
+        <div class="video-box">
+          <div class="video-label">YOU // LOCAL LAPTOP CAM</div>
+          <div class="fps-badge">LOCAL</div>
+          <video id="localVideo" autoplay playsinline muted></video>
+          <div id="camFallback" class="video-fallback-msg" style="display:none;">
+            Webcam permission pending or inactive.<br>
+            Click Start Local Cam below.
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-bar">
+        <div class="btn-group">
+          <button class="btn btn-action" id="nextBtn" onclick="nextStranger()">NEXT STRANGER</button>
+          <button class="btn btn-danger" id="stopBtn" onclick="stopSession()">DISCONNECT</button>
+          <button class="btn" id="startCamBtn" onclick="initLocalWebcam()">ENABLE LAPTOP CAM</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-family: monospace; font-size: 11px; color: #9ca3af;">FILTER:</span>
+          <select class="filter-select" id="filterSelect" onchange="changeFilter(this.value)">
+            <option value="none">DIRECT RAW</option>
+            <option value="cyberpunk">CYBERPUNK NEON</option>
+            <option value="cartoon">CARTOON EDGE</option>
+            <option value="thermal">THERMAL JET</option>
+            <option value="glitch">GLITCH SHIFT</option>
+          </select>
+          <select class="filter-select" id="sourceSelect" onchange="changeSource(this.value)">
+            <option value="phone">PHONE IP CAM (4444)</option>
+            <option value="synthetic">SYNTHETIC RADAR</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Omegle Text Chat Section -->
+    <div class="chat-section">
+      <div class="chat-header">
+        <span>XIN SESSION PROTOCOL: AS6453-DIRECT</span>
+        <span id="chatStatus">PEER CONNECTED</span>
+      </div>
+      <div class="chat-messages" id="chatBox">
+        <div class="msg-line msg-system">You're now chatting with a random stranger. Say hi!</div>
+        <div class="msg-line msg-system">Regional mesh verification complete. Jurisdiction: East Africa / Asia.</div>
+        <div class="msg-line msg-stranger">Stranger: <span class="msg-text">Camera stream verified from Android IP Camera.</span></div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Type your message and press Enter..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">SEND</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Local Laptop Webcam Ingestion
+    let localStream = null;
+    async function initLocalWebcam() {
+      const vid = document.getElementById('localVideo');
+      const fallback = document.getElementById('camFallback');
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        vid.srcObject = localStream;
+        vid.style.display = 'block';
+        if (fallback) fallback.style.display = 'none';
+        document.getElementById('startCamBtn').innerText = 'CAM ACTIVE';
+        document.getElementById('startCamBtn').style.borderColor = '#22c55e';
+        document.getElementById('startCamBtn').style.color = '#22c55e';
+      } catch (err) {
+        console.warn('Local webcam unavailable:', err);
+        vid.style.display = 'none';
+        if (fallback) fallback.style.display = 'block';
+      }
+    }
+
+    // Auto-attempt webcam
+    window.addEventListener('DOMContentLoaded', () => {
+      initLocalWebcam();
+      pollChat();
+      setInterval(pollChat, 2000);
+    });
+
+    // 2. Chat Logic
+    async function pollChat() {
+      try {
+        const res = await fetch('/api/chat');
+        if (!res.ok) return;
+        const msgs = await res.json();
+        const box = document.getElementById('chatBox');
+        
+        let html = '';
+        html += '<div class="msg-line msg-system">You are now chatting with a random stranger. Say hi!</div>';
+        html += '<div class="msg-line msg-system">Regional mesh active. Geofence: East Africa / South Africa / Asia.</div>';
+        
+        msgs.forEach(m => {
+          if (m.user === 'System') {
+            html += `<div class="msg-line msg-system">${escapeHtml(m.text)}</div>`;
+          } else if (m.user === 'You') {
+            html += `<div class="msg-line msg-you">You: <span class="msg-text">${escapeHtml(m.text)}</span></div>`;
+          } else {
+            html += `<div class="msg-line msg-stranger">${escapeHtml(m.user)}: <span class="msg-text">${escapeHtml(m.text)}</span></div>`;
+          }
+        });
+        box.innerHTML = html;
+        box.scrollTop = box.scrollHeight;
+      } catch (e) {
+        console.error('Chat poll error:', e);
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      
+      try {
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: 'You', text: text })
+        });
+        pollChat();
+      } catch (e) {
+        console.error('Send error:', e);
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 3. Omegle Controls
+    function nextStranger() {
+      const img = document.getElementById('remoteVideo');
+      const box = document.getElementById('chatBox');
+      const status = document.getElementById('chatStatus');
+      
+      status.innerText = 'SEARCHING FOR PEER...';
+      status.style.color = '#f59e0b';
+      
+      img.src = '';
+      setTimeout(() => {
+        img.src = '/video_feed?t=' + Date.now();
+        status.innerText = 'PEER CONNECTED';
+        status.style.color = '#22c55e';
+        box.innerHTML += '<div class="msg-line msg-system">Connected to new peer across subsea Indian Ocean backbone.</div>';
+        box.scrollTop = box.scrollHeight;
+      }, 600);
+    }
+
+    function stopSession() {
+      const img = document.getElementById('remoteVideo');
+      const status = document.getElementById('chatStatus');
+      const box = document.getElementById('chatBox');
+      
+      img.src = '';
+      status.innerText = 'DISCONNECTED';
+      status.style.color = '#ef4444';
+      box.innerHTML += '<div class="msg-line msg-system" style="border-color:#ef4444;color:#ef4444;">Session disconnected. Press NEXT STRANGER to reconnect.</div>';
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function changeFilter(flt) {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filter: flt })
+      });
+    }
+
+    async function changeSource(src) {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: src })
+      });
+    }
+  </script>
+</body>
+</html>

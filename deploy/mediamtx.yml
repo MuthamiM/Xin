@@ -1,0 +1,40 @@
+# MediaMTX Configuration for Xin High-Throughput Streaming
+# Configured for 1,000 Concurrent Low-Latency WebRTC & LL-HLS Streams
+
+api: yes
+apiAddress: :9997
+
+rtsp: yes
+rtspAddress: :8554
+protocols: [tcp]
+
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsAlwaysRemux: no
+hlsVariant: lowLatency
+hlsSegmentCount: 5
+hlsSegmentDuration: 500ms
+hlsPartDuration: 100ms
+
+webrtc: yes
+webrtcAddress: :8889
+webrtcEncryption: no
+webrtcServerCert: ""
+webrtcServerKey: ""
+webrtcICEServers2:
+  - url: stun:stun.l.google.com:19302
+
+paths:
+  live:
+    source: publisher
+    readUser: ""
+    readPass: ""
+    runOnPublish: ""
+    runOnPublishRestart: no
+
+  phone:
+    source: rtsp://192.168.1.201:8554/live
+    sourceOnDemand: yes
