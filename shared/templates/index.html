@@ -3,522 +3,864 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xin - 1-on-1 Video Stream</title>
+  <title>Xin - Live Stream</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: #0b0c10;
-      color: #c5c6c7;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base: #1a1a2e;
+      --bg-panel: #22223a;
+      --bg-panel-alt: #2a2a44;
+      --bg-input: #16162b;
+      --accent: #e8405a;
+      --accent-hover: #ff5a72;
+      --accent-dim: rgba(232, 64, 90, 0.15);
+      --accent-border: rgba(232, 64, 90, 0.4);
+      --text-primary: #f0f0f4;
+      --text-secondary: #9494b0;
+      --text-muted: #6a6a88;
+      --border: #33334d;
+      --border-light: #3d3d5c;
+      --online-green: #2ecc71;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --radius-lg: 12px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
     }
-    
-    /* Header */
-    header {
-      background: #1f2833;
-      border-bottom: 2px solid #45a29e;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
+
+    /* ---- MASTER GRID ---- */
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr 320px;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      padding: 10px;
     }
-    .brand {
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      grid-column: 1 / -1;
       display: flex;
-      align-items: baseline;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 18px;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
       gap: 12px;
     }
-    .brand h1 {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #66fcf1;
-      text-transform: uppercase;
-    }
-    .brand span {
-      font-size: 12px;
-      color: #c5c6c7;
-      font-family: monospace;
-      letter-spacing: 1px;
-    }
-    .network-badge {
+    .topbar-logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
-      gap: 16px;
-      font-family: monospace;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+    .topbar-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+    .topbar-sub {
       font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 1px;
+    }
+    .topbar-tags {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
     .tag {
-      background: #0b0c10;
-      border: 1px solid #45a29e;
-      color: #66fcf1;
-      padding: 4px 10px;
-      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel-alt);
+      color: var(--text-secondary);
     }
     .tag-live {
-      border-color: #22c55e;
-      color: #22c55e;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
     }
-    .nav-links a {
-      color: #66fcf1;
-      text-decoration: none;
-      font-size: 12px;
-      font-family: monospace;
-      padding: 4px 10px;
-      border: 1px solid #45a29e;
-      border-radius: 4px;
-      transition: all 0.2s;
+    .tag-live .dot {
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse-dot 1.5s ease-in-out infinite;
     }
-    .nav-links a:hover {
-      background: #45a29e;
-      color: #0b0c10;
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
-
-    /* Main Container */
-    .main-container {
-      flex: 1;
+    .tag-region {
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .topbar-nav {
       display: flex;
-      padding: 12px;
-      gap: 12px;
-      height: calc(100vh - 58px);
-      overflow: hidden;
+      gap: 6px;
+    }
+    .nav-btn {
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
     }
 
-    /* Left Side: Video Panes */
-    .video-section {
-      flex: 1.25;
+    /* ---- LEFT SIDEBAR ---- */
+    .sidebar-left {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      height: 100%;
+      overflow: hidden;
     }
-    .video-grid {
-      flex: 1;
-      display: grid;
-      grid-template-rows: 1fr 1fr;
-      gap: 10px;
-      min-height: 0;
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
     }
-    .video-box {
-      background: #000;
-      border: 1px solid #1f2833;
-      border-radius: 6px;
+    .panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-secondary);
+    }
+    .panel-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .badge-online {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--online-green);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+    .badge-accent {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    /* Webcam preview */
+    .cam-preview {
       position: relative;
+      aspect-ratio: 16/9;
+      background: #111124;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
     }
-    .video-box.active-box {
-      border-color: #45a29e;
-    }
-    .video-box img, .video-box video {
+    .cam-preview video, .cam-preview img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .video-label {
+    .cam-overlay {
       position: absolute;
-      top: 8px;
-      left: 10px;
-      background: rgba(11, 12, 16, 0.85);
-      border: 1px solid #45a29e;
+      bottom: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.7);
       padding: 3px 8px;
-      border-radius: 3px;
-      font-size: 11px;
-      font-family: monospace;
-      color: #66fcf1;
-      letter-spacing: 0.5px;
-      z-index: 10;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
     }
-    .fps-badge {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      background: rgba(11, 12, 16, 0.85);
-      padding: 3px 8px;
-      border-radius: 3px;
-      font-size: 11px;
-      font-family: monospace;
-      color: #22c55e;
-      z-index: 10;
-    }
-    .video-fallback-msg {
+    .cam-fallback {
       text-align: center;
-      color: #888;
-      font-size: 13px;
-      font-family: monospace;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.6;
+      padding: 20px;
     }
 
-    /* Video Control Bar */
-    .controls-bar {
+    /* Controls list */
+    .ctrl-list {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ctrl-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #1f2833;
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: 1px solid #374151;
-      flex-shrink: 0;
-      gap: 10px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border);
     }
-    .btn-group {
+    .ctrl-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .ctrl-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Filter / source selects */
+    .select-styled {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a6a88'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    .select-styled:focus {
+      border-color: var(--accent);
+    }
+    .select-group {
+      padding: 0 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .select-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      padding: 0 2px;
+    }
+
+    /* ---- MAIN STREAM AREA ---- */
+    .main-stream {
+      position: relative;
+      background: #0f0f20;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .main-stream img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .stream-hud-tl {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hud-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    }
+    .hud-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
+      font-weight: 500;
+    }
+    .stream-hud-tr {
+      position: absolute;
+      top: 14px;
+      right: 16px;
       display: flex;
       gap: 8px;
     }
-    .btn {
-      background: #0b0c10;
-      border: 1px solid #45a29e;
-      color: #66fcf1;
-      padding: 8px 16px;
+    .hud-tag {
+      padding: 4px 10px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
+      text-transform: uppercase;
       letter-spacing: 0.5px;
-      cursor: pointer;
-      font-family: monospace;
-      transition: all 0.2s;
-    }
-    .btn:hover {
-      background: #45a29e;
-      color: #0b0c10;
-    }
-    .btn-danger {
-      border-color: #ef4444;
-      color: #ef4444;
-    }
-    .btn-danger:hover {
-      background: #ef4444;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
       color: #fff;
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .btn-action {
-      background: #45a29e;
-      color: #0b0c10;
+    .hud-tag-live {
+      background: var(--accent);
+      border-color: var(--accent);
     }
-    .btn-action:hover {
-      background: #66fcf1;
+    .stream-hud-bl {
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      display: flex;
+      gap: 6px;
     }
-    .filter-select {
-      background: #0b0c10;
-      border: 1px solid #45a29e;
-      color: #66fcf1;
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 12px;
-      cursor: pointer;
+    .stream-hud-br {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      font-weight: 500;
     }
 
-    /* Right Side: Omegle Chat */
-    .chat-section {
-      flex: 1;
-      background: #1f2833;
-      border: 1px solid #374151;
-      border-radius: 6px;
+    /* ---- RIGHT SIDEBAR: CHAT ---- */
+    .sidebar-right {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      gap: 10px;
       overflow: hidden;
     }
-    .chat-header {
-      background: #161c24;
-      padding: 10px 14px;
-      border-bottom: 1px solid #374151;
-      font-family: monospace;
-      font-size: 12px;
-      color: #9ca3af;
-      display: flex;
-      justify-content: space-between;
-    }
-    .chat-messages {
+
+    .chat-panel {
       flex: 1;
-      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-body {
+      flex: 1;
+      padding: 12px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      background: #0d1117;
-      font-size: 13px;
-      line-height: 1.5;
+      background: var(--bg-input);
     }
-    .msg-line {
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .msg {
+      font-size: 12px;
+      line-height: 1.55;
       word-wrap: break-word;
     }
-    .msg-system {
-      color: #f59e0b;
-      font-size: 12px;
-      font-family: monospace;
-      background: rgba(245, 158, 11, 0.08);
-      padding: 4px 8px;
-      border-left: 2px solid #f59e0b;
-      border-radius: 2px;
+    .msg-sys {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      background: var(--accent-dim);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     }
-    .msg-stranger {
-      color: #ef4444;
+    .msg-stranger .msg-name {
+      color: var(--accent);
       font-weight: 700;
     }
-    .msg-stranger .msg-text {
-      color: #f3f4f6;
-      font-weight: 400;
-    }
-    .msg-you {
-      color: #3b82f6;
+    .msg-you .msg-name {
+      color: #5b8def;
       font-weight: 700;
     }
-    .msg-you .msg-text {
-      color: #f3f4f6;
+    .msg-text {
+      color: var(--text-primary);
       font-weight: 400;
     }
-    .chat-input-area {
+
+    .chat-input-wrap {
       padding: 10px;
-      background: #161c24;
-      border-top: 1px solid #374151;
+      border-top: 1px solid var(--border);
       display: flex;
-      gap: 8px;
+      gap: 6px;
+      background: var(--bg-panel);
     }
     .chat-input {
       flex: 1;
-      background: #0b0c10;
-      border: 1px solid #45a29e;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 13px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: inherit;
       outline: none;
     }
-    .chat-input:focus {
-      border-color: #66fcf1;
-    }
-    .send-btn {
-      background: #45a29e;
-      color: #0b0c10;
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-input:focus { border-color: var(--accent); }
+    .chat-send {
+      background: var(--accent);
       border: none;
-      padding: 8px 18px;
-      border-radius: 4px;
+      color: #fff;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
       font-weight: 700;
-      font-size: 12px;
+      font-family: inherit;
       cursor: pointer;
-      font-family: monospace;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      transition: background 0.15s;
     }
-    .send-btn:hover {
-      background: #66fcf1;
+    .chat-send:hover { background: var(--accent-hover); }
+
+    /* Links panel */
+    .links-panel {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .link-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .link-card:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .link-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .link-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ---- BOTTOM BAR ---- */
+    .bottombar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .status-pills {
+      display: flex;
+      gap: 6px;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+    }
+    .pill:hover {
+      border-color: var(--accent-border);
+      color: var(--text-primary);
+    }
+    .pill-active, .pill-danger {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .pill-active:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+    .pill-danger:hover {
+      background: #c0354a;
+      border-color: #c0354a;
+    }
+    .pill .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.6;
+    }
+    .pill-active .pill-dot, .pill-danger .pill-dot {
+      background: #fff;
+      opacity: 1;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    .bottom-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .bottom-credit {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .bottom-credit span {
+      color: var(--accent);
     }
   </style>
 </head>
 <body>
+  <div class="shell">
 
-  <header>
-    <div class="brand">
-      <h1>Xin</h1>
-      <span>[1-ON-1 STREAM DIRECT]</span>
-    </div>
-    <div class="network-badge">
-      <div class="tag tag-live">DIRECT MESH: ONLINE</div>
-      <div class="tag">REGIONS: EA / SA / ASIA</div>
-      <div class="tag">PORT: 5000</div>
-      <div class="nav-links">
-        <a href="/studio">ENGINE STUDIO</a>
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <div class="topbar-logo">X</div>
+        <div>
+          <div class="topbar-title">Xin</div>
+          <div class="topbar-sub">1-on-1 Direct Stream</div>
+        </div>
+      </div>
+      <div class="topbar-tags">
+        <span class="tag tag-live"><span class="dot"></span> LIVE</span>
+        <span class="tag tag-region">EA / SA / ASIA</span>
+        <span class="tag">192.168.122.223:5000</span>
+      </div>
+      <div class="topbar-nav">
+        <a href="/studio" class="nav-btn">Engine Studio</a>
+        <button class="nav-btn" onclick="window.location.reload()">Refresh</button>
       </div>
     </div>
-  </header>
 
-  <div class="main-container">
-    <!-- Video Screens (Omegle 1-on-1 Split) -->
-    <div class="video-section">
-      <div class="video-grid">
-        <!-- Stranger / Phone Camera Feed -->
-        <div class="video-box active-box">
-          <div class="video-label">STRANGER // REMOTE FEED [192.168.1.201]</div>
-          <div class="fps-badge" id="remoteFps">30 FPS</div>
-          <img id="remoteVideo" src="/video_feed" alt="Stranger Stream">
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar-left">
+
+      <!-- Your Webcam -->
+      <div class="panel" style="flex-shrink:0;">
+        <div class="panel-header">
+          <span class="panel-label">You // Laptop Cam</span>
+          <span class="panel-badge badge-accent" id="camBadge">Inactive</span>
         </div>
-
-        <!-- You / Laptop Local Webcam -->
-        <div class="video-box">
-          <div class="video-label">YOU // LOCAL LAPTOP CAM</div>
-          <div class="fps-badge">LOCAL</div>
-          <video id="localVideo" autoplay playsinline muted></video>
-          <div id="camFallback" class="video-fallback-msg" style="display:none;">
-            Webcam permission pending or inactive.<br>
-            Click Start Local Cam below.
+        <div class="cam-preview">
+          <video id="localVideo" autoplay playsinline muted style="display:none;"></video>
+          <div id="camFallback" class="cam-fallback">
+            Camera offline<br>Click Enable below
           </div>
+          <div class="cam-overlay">LOCAL</div>
         </div>
       </div>
 
       <!-- Controls -->
-      <div class="controls-bar">
-        <div class="btn-group">
-          <button class="btn btn-action" id="nextBtn" onclick="nextStranger()">NEXT STRANGER</button>
-          <button class="btn btn-danger" id="stopBtn" onclick="stopSession()">DISCONNECT</button>
-          <button class="btn" id="startCamBtn" onclick="initLocalWebcam()">ENABLE LAPTOP CAM</button>
+      <div class="panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+        <div class="panel-header">
+          <span class="panel-label">Stream Controls</span>
         </div>
-
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-family: monospace; font-size: 11px; color: #9ca3af;">FILTER:</span>
-          <select class="filter-select" id="filterSelect" onchange="changeFilter(this.value)">
-            <option value="none">DIRECT RAW</option>
-            <option value="cyberpunk">CYBERPUNK NEON</option>
-            <option value="cartoon">CARTOON EDGE</option>
-            <option value="thermal">THERMAL JET</option>
-            <option value="glitch">GLITCH SHIFT</option>
+        <div class="ctrl-list" style="flex:1; overflow-y:auto;">
+          <div class="ctrl-row">
+            <span class="ctrl-label">Source</span>
+            <span class="ctrl-val" id="srcDisplay">Phone Camera</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Filter</span>
+            <span class="ctrl-val" id="fxDisplay">Direct Raw</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Latency</span>
+            <span class="ctrl-val">34ms Indian Ocean</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Geofence</span>
+            <span class="ctrl-val">Enforced</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">VPN Guard</span>
+            <span class="ctrl-val">Active (900s ban)</span>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Rate Limit</span>
+            <span class="ctrl-val">80 req/min</span>
+          </div>
+        </div>
+        <div class="select-group">
+          <span class="select-label">Video Filter</span>
+          <select class="select-styled" id="filterSelect" onchange="setFilter(this.value)">
+            <option value="none">Direct Raw</option>
+            <option value="cyberpunk">Cyberpunk Neon</option>
+            <option value="cartoon">Cartoon Edge</option>
+            <option value="thermal">Thermal Jet</option>
+            <option value="glitch">Glitch Shift</option>
           </select>
-          <select class="filter-select" id="sourceSelect" onchange="changeSource(this.value)">
-            <option value="phone">PHONE IP CAM (4444)</option>
-            <option value="synthetic">SYNTHETIC RADAR</option>
+          <span class="select-label">Video Source</span>
+          <select class="select-styled" id="sourceSelect" onchange="setSource(this.value)">
+            <option value="phone">Phone IP Camera (4444)</option>
+            <option value="synthetic">Synthetic Radar</option>
           </select>
         </div>
       </div>
     </div>
 
-    <!-- Omegle Text Chat Section -->
-    <div class="chat-section">
-      <div class="chat-header">
-        <span>XIN SESSION PROTOCOL: AS6453-DIRECT</span>
-        <span id="chatStatus">PEER CONNECTED</span>
+    <!-- MAIN STREAM -->
+    <div class="main-stream">
+      <img id="remoteVideo" src="/video_feed" alt="Remote Stream">
+      <div class="stream-hud-tl">
+        <div class="hud-title" id="streamTitle">Stranger Connected</div>
+        <div class="hud-sub">Remote feed via Android IP Camera [192.168.1.201]</div>
       </div>
-      <div class="chat-messages" id="chatBox">
-        <div class="msg-line msg-system">You're now chatting with a random stranger. Say hi!</div>
-        <div class="msg-line msg-system">Regional mesh verification complete. Jurisdiction: East Africa / Asia.</div>
-        <div class="msg-line msg-stranger">Stranger: <span class="msg-text">Camera stream verified from Android IP Camera.</span></div>
+      <div class="stream-hud-tr">
+        <div class="hud-tag hud-tag-live" id="liveTag">LIVE</div>
+        <div class="hud-tag">30 FPS</div>
       </div>
-      <div class="chat-input-area">
-        <input type="text" id="chatInput" class="chat-input" placeholder="Type your message and press Enter..." onkeydown="if(event.key==='Enter') sendMessage()">
-        <button class="send-btn" onclick="sendMessage()">SEND</button>
+      <div class="stream-hud-br" id="streamClock"></div>
+    </div>
+
+    <!-- RIGHT SIDEBAR: CHAT -->
+    <div class="sidebar-right">
+      <div class="panel chat-panel" style="flex:1;">
+        <div class="panel-header">
+          <span class="panel-label">Chat</span>
+          <span class="panel-badge badge-online" id="peerBadge">Peer Connected</span>
+        </div>
+        <div class="chat-body" id="chatBox">
+          <div class="msg msg-sys">Session started. You are chatting with a random stranger.</div>
+          <div class="msg msg-sys">Geofence active: East Africa / South Africa / Asia only.</div>
+        </div>
+        <div class="chat-input-wrap">
+          <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
+          <button class="chat-send" onclick="sendMsg()">SEND</button>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="panel" style="flex-shrink:0;">
+        <div class="panel-header">
+          <span class="panel-label">Platform</span>
+        </div>
+        <div class="links-panel">
+          <div class="link-card" onclick="window.location='/studio'">
+            <div class="link-icon">S</div>
+            <div class="link-text">Studio</div>
+          </div>
+          <div class="link-card" onclick="window.location='/api/status'">
+            <div class="link-icon">A</div>
+            <div class="link-text">API Status</div>
+          </div>
+          <div class="link-card" onclick="initCam()">
+            <div class="link-icon">C</div>
+            <div class="link-text">Enable Cam</div>
+          </div>
+          <div class="link-card" onclick="nextStranger()">
+            <div class="link-icon">N</div>
+            <div class="link-text">Next Peer</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottombar">
+      <div class="status-pills">
+        <button class="pill pill-active" id="btnNext" onclick="nextStranger()">
+          <span class="pill-dot"></span> Next Stranger
+        </button>
+        <button class="pill" id="btnCam" onclick="initCam()">
+          <span class="pill-dot"></span> Enable Cam
+        </button>
+        <button class="pill pill-danger" id="btnStop" onclick="disconnect()">
+          <span class="pill-dot"></span> Disconnect
+        </button>
+      </div>
+      <div class="bottom-info">
+        <div class="bottom-credit"><span>Xin</span> // Direct Mesh Protocol</div>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // 1. Local Laptop Webcam Ingestion
+    // Clock
+    function tickClock() {
+      const el = document.getElementById('streamClock');
+      if (el) el.textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
+    setInterval(tickClock, 1000); tickClock();
+
+    // Local webcam
     let localStream = null;
-    async function initLocalWebcam() {
+    async function initCam() {
       const vid = document.getElementById('localVideo');
-      const fallback = document.getElementById('camFallback');
+      const fb = document.getElementById('camFallback');
+      const badge = document.getElementById('camBadge');
+      const btn = document.getElementById('btnCam');
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false
-        });
+        localStream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false});
         vid.srcObject = localStream;
         vid.style.display = 'block';
-        if (fallback) fallback.style.display = 'none';
-        document.getElementById('startCamBtn').innerText = 'CAM ACTIVE';
-        document.getElementById('startCamBtn').style.borderColor = '#22c55e';
-        document.getElementById('startCamBtn').style.color = '#22c55e';
-      } catch (err) {
-        console.warn('Local webcam unavailable:', err);
-        vid.style.display = 'none';
-        if (fallback) fallback.style.display = 'block';
+        fb.style.display = 'none';
+        badge.textContent = 'Active';
+        badge.className = 'panel-badge badge-online';
+        btn.innerHTML = '<span class="pill-dot"></span> Cam Active';
+        btn.classList.add('pill-active');
+      } catch(e) {
+        console.warn('Webcam error:', e);
+        fb.textContent = 'Camera unavailable or permission denied';
       }
     }
 
-    // Auto-attempt webcam
-    window.addEventListener('DOMContentLoaded', () => {
-      initLocalWebcam();
-      pollChat();
-      setInterval(pollChat, 2000);
-    });
-
-    // 2. Chat Logic
+    // Chat
     async function pollChat() {
       try {
-        const res = await fetch('/api/chat');
-        if (!res.ok) return;
-        const msgs = await res.json();
+        const r = await fetch('/api/chat');
+        if (!r.ok) return;
+        const msgs = await r.json();
         const box = document.getElementById('chatBox');
-        
-        let html = '';
-        html += '<div class="msg-line msg-system">You are now chatting with a random stranger. Say hi!</div>';
-        html += '<div class="msg-line msg-system">Regional mesh active. Geofence: East Africa / South Africa / Asia.</div>';
-        
+        let html = '<div class="msg msg-sys">Session started. Chatting with a random stranger.</div>';
+        html += '<div class="msg msg-sys">Geofence: East Africa / South Africa / Asia.</div>';
         msgs.forEach(m => {
           if (m.user === 'System') {
-            html += `<div class="msg-line msg-system">${escapeHtml(m.text)}</div>`;
+            html += '<div class="msg msg-sys">' + esc(m.text) + '</div>';
           } else if (m.user === 'You') {
-            html += `<div class="msg-line msg-you">You: <span class="msg-text">${escapeHtml(m.text)}</span></div>`;
+            html += '<div class="msg msg-you"><span class="msg-name">You: </span><span class="msg-text">' + esc(m.text) + '</span></div>';
           } else {
-            html += `<div class="msg-line msg-stranger">${escapeHtml(m.user)}: <span class="msg-text">${escapeHtml(m.text)}</span></div>`;
+            html += '<div class="msg msg-stranger"><span class="msg-name">' + esc(m.user) + ': </span><span class="msg-text">' + esc(m.text) + '</span></div>';
           }
         });
         box.innerHTML = html;
         box.scrollTop = box.scrollHeight;
-      } catch (e) {
-        console.error('Chat poll error:', e);
-      }
+      } catch(e) {}
+    }
+    async function sendMsg() {
+      const inp = document.getElementById('chatInput');
+      const t = inp.value.trim();
+      if (!t) return;
+      inp.value = '';
+      await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:'You',text:t})});
+      pollChat();
+    }
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Stream controls
+    async function setFilter(v) {
+      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filter:v})});
+      const names = {none:'Direct Raw',cyberpunk:'Cyberpunk Neon',cartoon:'Cartoon Edge',thermal:'Thermal Jet',glitch:'Glitch Shift'};
+      document.getElementById('fxDisplay').textContent = names[v] || v;
+    }
+    async function setSource(v) {
+      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:v})});
+      const names = {phone:'Phone Camera',synthetic:'Synthetic Radar'};
+      document.getElementById('srcDisplay').textContent = names[v] || v;
     }
 
-    async function sendMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      
-      try {
-        await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: 'You', text: text })
-        });
-        pollChat();
-      } catch (e) {
-        console.error('Send error:', e);
-      }
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    // 3. Omegle Controls
     function nextStranger() {
       const img = document.getElementById('remoteVideo');
-      const box = document.getElementById('chatBox');
-      const status = document.getElementById('chatStatus');
-      
-      status.innerText = 'SEARCHING FOR PEER...';
-      status.style.color = '#f59e0b';
-      
+      const title = document.getElementById('streamTitle');
+      const peer = document.getElementById('peerBadge');
+      const tag = document.getElementById('liveTag');
+      title.textContent = 'Searching...';
+      peer.textContent = 'Connecting';
+      peer.className = 'panel-badge badge-accent';
+      tag.textContent = 'WAIT';
       img.src = '';
       setTimeout(() => {
         img.src = '/video_feed?t=' + Date.now();
-        status.innerText = 'PEER CONNECTED';
-        status.style.color = '#22c55e';
-        box.innerHTML += '<div class="msg-line msg-system">Connected to new peer across subsea Indian Ocean backbone.</div>';
+        title.textContent = 'Stranger Connected';
+        peer.textContent = 'Peer Connected';
+        peer.className = 'panel-badge badge-online';
+        tag.textContent = 'LIVE';
+        const box = document.getElementById('chatBox');
+        box.innerHTML += '<div class="msg msg-sys">New peer connected via subsea Indian Ocean backbone.</div>';
         box.scrollTop = box.scrollHeight;
-      }, 600);
+      }, 700);
     }
 
-    function stopSession() {
+    function disconnect() {
       const img = document.getElementById('remoteVideo');
-      const status = document.getElementById('chatStatus');
-      const box = document.getElementById('chatBox');
-      
+      const title = document.getElementById('streamTitle');
+      const peer = document.getElementById('peerBadge');
+      const tag = document.getElementById('liveTag');
       img.src = '';
-      status.innerText = 'DISCONNECTED';
-      status.style.color = '#ef4444';
-      box.innerHTML += '<div class="msg-line msg-system" style="border-color:#ef4444;color:#ef4444;">Session disconnected. Press NEXT STRANGER to reconnect.</div>';
+      title.textContent = 'Disconnected';
+      peer.textContent = 'Offline';
+      peer.className = 'panel-badge badge-accent';
+      tag.textContent = 'OFF';
+      const box = document.getElementById('chatBox');
+      box.innerHTML += '<div class="msg msg-sys">Session ended. Press Next Stranger to reconnect.</div>';
       box.scrollTop = box.scrollHeight;
     }
 
-    async function changeFilter(flt) {
-      await fetch('/api/control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filter: flt })
-      });
-    }
-
-    async function changeSource(src) {
-      await fetch('/api/control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: src })
-      });
-    }
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      pollChat();
+      setInterval(pollChat, 2500);
+      initCam();
+    });
   </script>
 </body>
 </html>

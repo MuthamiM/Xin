@@ -2,159 +2,404 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Xin - Vision Engine Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xin - Engine Studio</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #06070a;
-      color: #9ca3af;
-      font-family: monospace;
-      padding: 24px;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base: #1a1a2e;
+      --bg-panel: #22223a;
+      --bg-panel-alt: #2a2a44;
+      --bg-input: #16162b;
+      --accent: #e8405a;
+      --accent-hover: #ff5a72;
+      --accent-dim: rgba(232, 64, 90, 0.15);
+      --accent-border: rgba(232, 64, 90, 0.4);
+      --text-primary: #f0f0f4;
+      --text-secondary: #9494b0;
+      --text-muted: #6a6a88;
+      --border: #33334d;
+      --border-light: #3d3d5c;
+      --online-green: #2ecc71;
+      --radius: 8px;
+      --radius-sm: 5px;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #1f2937;
-      padding-bottom: 14px;
-      margin-bottom: 24px;
-    }
-    h1 {
-      color: #66fcf1;
-      font-size: 20px;
-      letter-spacing: 2px;
-    }
-    a {
-      color: #45a29e;
-      text-decoration: none;
-      font-size: 13px;
-      border: 1px solid #45a29e;
-      padding: 6px 14px;
-      border-radius: 4px;
-    }
-    a:hover {
-      background: #45a29e;
-      color: #000;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
-    .panel {
-      background: #0d1117;
-      border: 1px solid #1f2937;
-      border-radius: 6px;
-      padding: 18px;
-    }
-    .panel h2 {
-      font-size: 14px;
-      color: #f3f4f6;
-      margin-bottom: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .preview-box {
-      width: 100%;
-      height: 440px;
-      background: #000;
-      border: 1px solid #374151;
-      border-radius: 4px;
+
+    html, body {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
+    }
+
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 18px;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
     }
-    .preview-box img {
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .topbar-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 1px;
+    }
+    .nav-btn {
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ---- PANELS ---- */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-secondary);
+    }
+    .panel-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .badge-online {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--online-green);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+    }
+    .badge-accent {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    /* ---- MAIN CANVAS ---- */
+    .main-canvas {
+      position: relative;
+      background: #0f0f20;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .canvas-view {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-view img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .metric-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #161b22;
-      font-size: 12px;
+    .canvas-hud {
+      position: absolute;
+      top: 14px;
+      left: 16px;
     }
-    .metric-label { color: #6b7280; }
-    .metric-val { color: #66fcf1; font-weight: bold; }
-    .btn-row {
+    .canvas-hud-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+    .canvas-hud-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Filter bar */
+    .filter-bar {
       display: flex;
+      gap: 6px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-panel);
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
     }
     .fx-btn {
-      background: #111827;
-      border: 1px solid #374151;
-      color: #e5e7eb;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: monospace;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-panel-alt);
+      color: var(--text-secondary);
       font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
     }
-    .fx-btn:hover {
-      border-color: #66fcf1;
-      color: #66fcf1;
+    .fx-btn:hover, .fx-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
     }
+
+    /* ---- RIGHT: DIAGNOSTICS ---- */
+    .sidebar-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .diag-list {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .diag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border);
+    }
+    .diag-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .diag-val {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: right;
+    }
+
+    .source-btns {
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+    }
+    .src-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-panel-alt);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .src-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ---- BOTTOM BAR ---- */
+    .bottombar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bottom-credit {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .bottom-credit span { color: var(--accent); }
   </style>
 </head>
 <body>
-  <header>
-    <h1>XIN // VISION ENGINE STUDIO</h1>
-    <a href="/">RETURN TO 1-ON-1 STREAM</a>
-  </header>
+  <div class="shell">
 
-  <div class="grid">
-    <div class="panel">
-      <h2>Live Engine Canvas</h2>
-      <div class="preview-box">
-        <img src="/video_feed" alt="Engine Stream">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-brand">
+        <div class="topbar-logo">X</div>
+        <div>
+          <div class="topbar-title">Xin // Vision Engine Studio</div>
+          <div class="topbar-sub">Stream processing and diagnostics dashboard</div>
+        </div>
       </div>
-      <div class="btn-row">
-        <button class="fx-btn" onclick="setFx('none')">DIRECT RAW</button>
-        <button class="fx-btn" onclick="setFx('cyberpunk')">CYBERPUNK NEON</button>
-        <button class="fx-btn" onclick="setFx('cartoon')">CARTOON EDGE</button>
-        <button class="fx-btn" onclick="setFx('thermal')">THERMAL JET</button>
-        <button class="fx-btn" onclick="setFx('glitch')">GLITCH SHIFT</button>
+      <a href="/" class="nav-btn">Return to 1-on-1 Stream</a>
+    </div>
+
+    <!-- MAIN CANVAS -->
+    <div class="main-canvas">
+      <div class="canvas-view">
+        <img src="/video_feed" alt="Engine Stream">
+        <div class="canvas-hud">
+          <div class="canvas-hud-title">Live Engine Canvas</div>
+          <div class="canvas-hud-sub">Real-time video processing pipeline output</div>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <button class="fx-btn active" onclick="setFx('none', this)">Direct Raw</button>
+        <button class="fx-btn" onclick="setFx('cyberpunk', this)">Cyberpunk Neon</button>
+        <button class="fx-btn" onclick="setFx('cartoon', this)">Cartoon Edge</button>
+        <button class="fx-btn" onclick="setFx('thermal', this)">Thermal Jet</button>
+        <button class="fx-btn" onclick="setFx('glitch', this)">Glitch Shift</button>
       </div>
     </div>
 
-    <div class="panel">
-      <h2>Engine Diagnostics</h2>
-      <div class="metric-row"><span class="metric-label">Target Architecture:</span><span class="metric-val">1000 Concurrent Streams</span></div>
-      <div class="metric-row"><span class="metric-label">Ingest Pipeline:</span><span class="metric-val">WebRTC / RTSP / MJPEG</span></div>
-      <div class="metric-row"><span class="metric-label">Core Relay:</span><span class="metric-val">MediaMTX + NGINX Edge</span></div>
-      <div class="metric-row"><span class="metric-label">Hardware Acceleration:</span><span class="metric-val">VA-API / NVENC Active</span></div>
-      <div class="metric-row"><span class="metric-label">Indian Ocean Subsea Link:</span><span class="metric-val">PEACE / SEA-ME-WE-5 (34ms)</span></div>
-      <div class="metric-row"><span class="metric-label">Geofence Filter:</span><span class="metric-val">EA + SA + ASIA ENFORCED</span></div>
-      <div class="metric-row"><span class="metric-label">VPN Ban Window:</span><span class="metric-val">900 Seconds (15 min)</span></div>
-      <div class="metric-row"><span class="metric-label">Rate Limit Window:</span><span class="metric-val">80 req/min</span></div>
-      
-      <h2 style="margin-top:24px;">Source Switcher</h2>
-      <div class="btn-row">
-        <button class="fx-btn" onclick="setSource('phone')">PHONE CAMERA (4444)</button>
-        <button class="fx-btn" onclick="setSource('synthetic')">SYNTHETIC RADAR</button>
+    <!-- RIGHT: DIAGNOSTICS -->
+    <div class="sidebar-right">
+
+      <div class="panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+        <div class="panel-header">
+          <span class="panel-label">Engine Diagnostics</span>
+          <span class="panel-badge badge-online">Online</span>
+        </div>
+        <div class="diag-list" style="flex:1; overflow-y:auto;">
+          <div class="diag-row">
+            <span class="diag-label">Target Architecture</span>
+            <span class="diag-val">1000 Streams</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Ingest Pipeline</span>
+            <span class="diag-val">WebRTC / RTSP / MJPEG</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Core Relay</span>
+            <span class="diag-val">MediaMTX + NGINX Edge</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Hardware Accel</span>
+            <span class="diag-val">VA-API / NVENC</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Subsea Link</span>
+            <span class="diag-val">PEACE / SEA-ME-WE-5</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Link Latency</span>
+            <span class="diag-val">34ms</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Geofence</span>
+            <span class="diag-val">EA + SA + ASIA</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">VPN Ban Window</span>
+            <span class="diag-val">900s (15 min)</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Rate Limit</span>
+            <span class="diag-val">80 req/min</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Error Handlers</span>
+            <span class="diag-val">400/403/404/429/500</span>
+          </div>
+        </div>
       </div>
+
+      <div class="panel" style="flex-shrink:0;">
+        <div class="panel-header">
+          <span class="panel-label">Source Switcher</span>
+        </div>
+        <div class="source-btns">
+          <button class="src-btn" onclick="setSrc('phone')">Phone Camera (4444)</button>
+          <button class="src-btn" onclick="setSrc('synthetic')">Synthetic Radar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottombar">
+      <div class="bottom-credit"><span>Xin</span> // Vision Engine Studio // Direct Mesh Protocol</div>
     </div>
   </div>
 
   <script>
-    async function setFx(f) {
-      await fetch('/api/control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filter: f })
-      });
+    async function setFx(f, el) {
+      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filter:f})});
+      document.querySelectorAll('.fx-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
     }
-    async function setSource(s) {
-      await fetch('/api/control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: s })
-      });
+    async function setSrc(s) {
+      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:s})});
     }
   </script>
 </body>
