@@ -3,863 +3,1030 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xin - Live Stream</title>
+  <title>Xin - 1-on-1 Video Stream</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-base: #1a1a2e;
-      --bg-panel: #22223a;
-      --bg-panel-alt: #2a2a44;
-      --bg-input: #16162b;
-      --accent: #e8405a;
-      --accent-hover: #ff5a72;
-      --accent-dim: rgba(232, 64, 90, 0.15);
-      --accent-border: rgba(232, 64, 90, 0.4);
-      --text-primary: #f0f0f4;
-      --text-secondary: #9494b0;
-      --text-muted: #6a6a88;
-      --border: #33334d;
-      --border-light: #3d3d5c;
-      --online-green: #2ecc71;
-      --radius: 8px;
-      --radius-sm: 5px;
-      --radius-lg: 12px;
+      --bg-darkest: #0e0f17;
+      --bg-base: #141622;
+      --bg-panel: #1b1d2c;
+      --bg-panel-alt: #222538;
+      --bg-input: #10121d;
+      --accent: #ff4757;
+      --accent-hover: #ff6b81;
+      --accent-dim: rgba(255, 71, 87, 0.15);
+      --accent-border: #ff4757;
+      --accent-glow: rgba(255, 71, 87, 0.35);
+      --text-white: #ffffff;
+      --text-primary: #e4e6eb;
+      --text-secondary: #9094a6;
+      --text-muted: #5d6175;
+      --border-dark: #2a2e45;
+      --green: #2ed573;
     }
 
     html, body {
       height: 100%;
-      background: var(--bg-base);
+      background: var(--bg-darkest);
       color: var(--text-primary);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* ---- MASTER GRID ---- */
-    .shell {
-      height: 100vh;
-      display: grid;
-      grid-template-columns: 260px 1fr 320px;
-      grid-template-rows: auto 1fr auto;
-      gap: 10px;
-      padding: 10px;
+    /* Outer Container */
+    .app-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 18px;
+      gap: 14px;
+      background: radial-gradient(circle at 80% 20%, #1a1c2e 0%, var(--bg-darkest) 70%);
     }
 
-    /* ---- TOP BAR ---- */
-    .topbar {
-      grid-column: 1 / -1;
+    /* TOP HEADER */
+    .header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 18px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 10px 20px;
     }
-    .topbar-brand {
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      letter-spacing: 1px;
+    }
+    .brand-text h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-white);
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .brand-text span {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    .header-metrics {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .topbar-logo {
-      width: 36px;
-      height: 36px;
-      background: var(--accent);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 18px;
-      color: #fff;
-      letter-spacing: -1px;
-    }
-    .topbar-title {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-primary);
-    }
-    .topbar-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-top: 1px;
-    }
-    .topbar-tags {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .tag {
+    .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      border: 1px solid var(--border);
-      background: var(--bg-panel-alt);
-      color: var(--text-secondary);
-    }
-    .tag-live {
+      gap: 6px;
       background: var(--accent);
-      border-color: var(--accent);
       color: #fff;
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
     }
-    .tag-live .dot {
-      width: 6px;
-      height: 6px;
+    .status-badge .live-dot {
+      width: 7px;
+      height: 7px;
       background: #fff;
       border-radius: 50%;
-      animation: pulse-dot 1.5s ease-in-out infinite;
+      animation: pulse 1.4s infinite;
     }
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
     }
-    .tag-region {
-      border-color: var(--accent-border);
+    .metric-pill {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      color: var(--text-secondary);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    .metric-pill strong {
       color: var(--accent);
-    }
-    .topbar-nav {
-      display: flex;
-      gap: 6px;
     }
     .nav-btn {
       background: var(--bg-panel-alt);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: 4px;
       font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
+      font-weight: 700;
       text-decoration: none;
-      transition: all 0.15s;
-      font-family: inherit;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s;
     }
     .nav-btn:hover {
+      background: var(--accent);
       border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
+      color: #fff;
     }
 
-    /* ---- LEFT SIDEBAR ---- */
-    .sidebar-left {
+    /* MAIN STAGE LAYOUT */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px 240px;
+      gap: 14px;
+      flex: 1;
+    }
+
+    /* =======================================================
+       LEFT: MAIN BROADCAST FRAME (Coral Red Overlay Frame)
+       ======================================================= */
+    .stream-frame-container {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      overflow: hidden;
     }
-
-    .panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+    .broadcast-card {
+      background: var(--bg-base);
+      border: 3px solid var(--accent);
+      border-radius: 8px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 25px var(--accent-glow);
     }
-    .panel-header {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
+    /* Red Header Banner matching reference */
+    .broadcast-banner {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .panel-label {
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .banner-icon {
+      background: #fff;
+      color: var(--accent);
+      font-weight: 900;
+      font-family: 'Rajdhani', sans-serif;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .banner-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 900;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+    .banner-subtitle {
       font-size: 11px;
+      font-weight: 600;
+      opacity: 0.9;
+      letter-spacing: 0.5px;
+    }
+    .banner-badges {
+      display: flex;
+      gap: 8px;
+    }
+    .banner-tag {
+      background: rgba(0,0,0,0.3);
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 0.5px;
+    }
+
+    /* Live Video Canvas */
+    .video-viewport {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .video-viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .viewport-overlay {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: rgba(14, 15, 23, 0.85);
+      border-left: 3px solid var(--accent);
+      padding: 4px 10px;
+      border-radius: 0 4px 4px 0;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: 1px;
+    }
+    .viewport-fps {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(14, 15, 23, 0.85);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 1px;
+    }
+
+    /* Sub-bar Stat Badges (3 boxes along bottom of main frame matching screenshot) */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: var(--bg-panel);
+      border-top: 2px solid var(--accent);
+      padding: 8px 12px;
+      gap: 10px;
+    }
+    .stat-box {
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stat-icon {
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .stat-meta {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 9px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-secondary);
     }
-    .panel-badge {
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    .badge-online {
-      background: rgba(46, 204, 113, 0.15);
-      color: var(--online-green);
-      border: 1px solid rgba(46, 204, 113, 0.3);
-    }
-    .badge-accent {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid var(--accent-border);
+    .stat-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: 0.5px;
     }
 
-    /* Webcam preview */
-    .cam-preview {
-      position: relative;
-      aspect-ratio: 16/9;
-      background: #111124;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .cam-preview video, .cam-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .cam-overlay {
-      position: absolute;
-      bottom: 6px;
-      left: 6px;
-      background: rgba(0,0,0,0.7);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    .cam-fallback {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 11px;
-      line-height: 1.6;
-      padding: 20px;
-    }
-
-    /* Controls list */
-    .ctrl-list {
-      padding: 10px;
+    /* =======================================================
+       MIDDLE: SECONDARY WEBCAM & CHAT (matching screenshot)
+       ======================================================= */
+    .middle-column {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 14px;
     }
-    .ctrl-row {
+
+    /* Local Laptop Cam (Top Box in Middle Column) */
+    .cam-card {
+      background: var(--bg-base);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cam-header {
+      background: var(--bg-panel);
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border-dark);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 7px 10px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-panel-alt);
-      border: 1px solid var(--border);
     }
-    .ctrl-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    .ctrl-val {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    /* Filter / source selects */
-    .select-styled {
-      width: 100%;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      outline: none;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a6a88'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-    }
-    .select-styled:focus {
-      border-color: var(--accent);
-    }
-    .select-group {
-      padding: 0 10px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .select-label {
-      font-size: 10px;
+    .cam-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      padding: 0 2px;
+      letter-spacing: 1px;
+      color: var(--accent);
     }
-
-    /* ---- MAIN STREAM AREA ---- */
-    .main-stream {
+    .cam-status {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .cam-body {
+      background: #000;
+      aspect-ratio: 16/9;
       position: relative;
-      background: #0f0f20;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .main-stream img {
+    .cam-body video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .stream-hud-tl {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .hud-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: #fff;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-    }
-    .hud-sub {
-      font-size: 12px;
-      color: rgba(255,255,255,0.65);
-      font-weight: 500;
-    }
-    .stream-hud-tr {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      display: flex;
-      gap: 8px;
-    }
-    .hud-tag {
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .hud-tag-live {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .stream-hud-bl {
-      position: absolute;
-      bottom: 14px;
-      left: 16px;
-      display: flex;
-      gap: 6px;
-    }
-    .stream-hud-br {
-      position: absolute;
-      bottom: 14px;
-      right: 16px;
+    .cam-offline-note {
+      text-align: center;
+      color: var(--text-muted);
       font-size: 11px;
-      color: rgba(255,255,255,0.5);
-      font-weight: 500;
+      padding: 20px;
+      line-height: 1.5;
     }
 
-    /* ---- RIGHT SIDEBAR: CHAT ---- */
-    .sidebar-right {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow: hidden;
-    }
-
-    .chat-panel {
+    /* CHAT Panel (Bottom Box in Middle Column) */
+    .chat-card {
+      background: var(--bg-base);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .chat-body {
+    .chat-title-banner {
+      background: var(--bg-panel);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-dark);
+      text-align: center;
+      position: relative;
+    }
+    .chat-title-banner h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-white);
+    }
+    .chat-title-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 35%;
+      width: 30%;
+      height: 2px;
+      background: var(--accent);
+    }
+    .chat-stream-box {
       flex: 1;
+      background: var(--bg-input);
       padding: 12px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      background: var(--bg-input);
     }
-    .chat-body::-webkit-scrollbar { width: 4px; }
-    .chat-body::-webkit-scrollbar-track { background: transparent; }
-    .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .chat-stream-box::-webkit-scrollbar { width: 4px; }
+    .chat-stream-box::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-    .msg {
+    .msg-row {
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 1.5;
       word-wrap: break-word;
     }
     .msg-sys {
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 6px 10px;
       background: var(--accent-dim);
       border-left: 3px solid var(--accent);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      border-radius: 0 4px 4px 0;
     }
-    .msg-stranger .msg-name {
+    .msg-stranger .author {
       color: var(--accent);
       font-weight: 700;
     }
-    .msg-you .msg-name {
-      color: #5b8def;
+    .msg-you .author {
+      color: #3b82f6;
       font-weight: 700;
     }
-    .msg-text {
+    .msg-content {
       color: var(--text-primary);
-      font-weight: 400;
     }
 
-    .chat-input-wrap {
-      padding: 10px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 6px;
+    .chat-compose {
       background: var(--bg-panel);
+      border-top: 1px solid var(--border-dark);
+      padding: 10px;
+      display: flex;
+      gap: 8px;
     }
-    .chat-input {
+    .chat-compose input {
       flex: 1;
       background: var(--bg-input);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      padding: 9px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-family: inherit;
-      outline: none;
-    }
-    .chat-input::placeholder { color: var(--text-muted); }
-    .chat-input:focus { border-color: var(--accent); }
-    .chat-send {
-      background: var(--accent);
-      border: none;
+      border: 1px solid var(--border-dark);
       color: #fff;
-      padding: 9px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      outline: none;
       font-family: inherit;
+    }
+    .chat-compose input:focus {
+      border-color: var(--accent);
+    }
+    .chat-compose button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
       cursor: pointer;
-      letter-spacing: 0.3px;
-      transition: background 0.15s;
+      transition: background 0.2s;
     }
-    .chat-send:hover { background: var(--accent-hover); }
+    .chat-compose button:hover {
+      background: var(--accent-hover);
+    }
 
-    /* Links panel */
-    .links-panel {
-      padding: 10px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
+    /* =======================================================
+       RIGHT: ANGULAR TRAPEZOID ACTION CARDS (matching screenshot)
+       ======================================================= */
+    .controls-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .link-card {
+
+    .action-badge-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-panel-alt);
-      border: 1px solid var(--border);
-      text-decoration: none;
-      transition: all 0.15s;
+      gap: 12px;
       cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      overflow: hidden;
     }
-    .link-card:hover {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
-    .link-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
+    .action-badge-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
       background: var(--accent);
+      transition: width 0.2s ease;
+    }
+    .action-badge-card:hover {
+      border-color: var(--accent);
+      transform: translateX(3px);
+      box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2);
+    }
+    .action-badge-card:hover::before {
+      width: 6px;
+    }
+
+    /* Angular trapezoid icon badge matching screenshot */
+    .trapezoid-icon {
+      background: var(--accent);
+      color: #fff;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      font-weight: 800;
-      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
       flex-shrink: 0;
     }
-    .link-text {
-      font-size: 10px;
+    .action-card-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .action-card-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
       font-weight: 700;
-      color: var(--text-secondary);
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      color: var(--text-white);
+    }
+    .action-card-desc {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
     }
 
-    /* ---- BOTTOM BAR ---- */
-    .bottombar {
-      grid-column: 1 / -1;
+    /* Select Inputs in Right Column */
+    .filter-panel {
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .filter-panel label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+    .custom-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-dark);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .custom-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* =======================================================
+       BOTTOM: 4 STATUS / SCENE CARDS (matching screenshot)
+       ======================================================= */
+    .bottom-scene-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .scene-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 14px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-    }
-    .status-pills {
-      display: flex;
-      gap: 6px;
-    }
-    .pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 700;
+      position: relative;
+      overflow: hidden;
       cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--bg-panel);
-      color: var(--text-secondary);
-      transition: all 0.15s;
-      font-family: inherit;
-      letter-spacing: 0.3px;
+      transition: all 0.2s;
     }
-    .pill:hover {
-      border-color: var(--accent-border);
-      color: var(--text-primary);
-    }
-    .pill-active, .pill-danger {
+    .scene-card.active-scene {
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
     }
-    .pill-active:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
+    .scene-card.active-scene .scene-title,
+    .scene-card.active-scene .scene-sub,
+    .scene-card.active-scene .scene-code {
+      color: #fff;
     }
-    .pill-danger:hover {
-      background: #c0354a;
-      border-color: #c0354a;
+    .scene-card:hover:not(.active-scene) {
+      border-color: var(--accent);
+      background: var(--bg-panel);
     }
-    .pill .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      opacity: 0.6;
-    }
-    .pill-active .pill-dot, .pill-danger .pill-dot {
-      background: #fff;
-      opacity: 1;
-      animation: pulse-dot 1.5s ease-in-out infinite;
-    }
-
-    .bottom-info {
+    .scene-left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
-    .bottom-credit {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 8px 14px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
+    .scene-badge {
+      background: rgba(0,0,0,0.3);
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
     }
-    .bottom-credit span {
+    .scene-card.active-scene .scene-badge {
+      background: #fff;
       color: var(--accent);
+    }
+    .scene-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .scene-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: -0.3px;
+      color: var(--text-white);
+    }
+    .scene-sub {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .scene-code {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
-  <div class="shell">
 
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div class="topbar-brand">
-        <div class="topbar-logo">X</div>
-        <div>
-          <div class="topbar-title">Xin</div>
-          <div class="topbar-sub">1-on-1 Direct Stream</div>
+  <div class="app-viewport">
+
+    <!-- TOP HEADER -->
+    <header class="header-bar">
+      <div class="brand-group">
+        <div class="brand-mark">X</div>
+        <div class="brand-text">
+          <h1>Xin</h1>
+          <span>1-ON-1 HIGH THROUGHPUT VIDEO MESH</span>
         </div>
       </div>
-      <div class="topbar-tags">
-        <span class="tag tag-live"><span class="dot"></span> LIVE</span>
-        <span class="tag tag-region">EA / SA / ASIA</span>
-        <span class="tag">192.168.122.223:5000</span>
-      </div>
-      <div class="topbar-nav">
+
+      <div class="header-metrics">
+        <div class="status-badge">
+          <span class="live-dot"></span>
+          <span>LIVE BROADCAST</span>
+        </div>
+        <div class="metric-pill">REGION: <strong>EA / SA / ASIA</strong></div>
+        <div class="metric-pill">MESH: <strong>1,000 STREAMS ARCHITECTURE</strong></div>
         <a href="/studio" class="nav-btn">Engine Studio</a>
-        <button class="nav-btn" onclick="window.location.reload()">Refresh</button>
       </div>
-    </div>
+    </header>
 
-    <!-- LEFT SIDEBAR -->
-    <div class="sidebar-left">
+    <!-- MAIN STAGE (3 Columns matching reference screenshot) -->
+    <div class="stage-grid">
 
-      <!-- Your Webcam -->
-      <div class="panel" style="flex-shrink:0;">
-        <div class="panel-header">
-          <span class="panel-label">You // Laptop Cam</span>
-          <span class="panel-badge badge-accent" id="camBadge">Inactive</span>
-        </div>
-        <div class="cam-preview">
-          <video id="localVideo" autoplay playsinline muted style="display:none;"></video>
-          <div id="camFallback" class="cam-fallback">
-            Camera offline<br>Click Enable below
+      <!-- LEFT: MAIN BROADCAST FRAME (Stranger Remote Feed / Coral Frame) -->
+      <div class="stream-frame-container">
+        <div class="broadcast-card">
+          <!-- Coral Banner matching screenshot "Just a short Intermission" style -->
+          <div class="broadcast-banner">
+            <div class="banner-left">
+              <div class="banner-icon">LIVE</div>
+              <div>
+                <div class="banner-title" id="bannerTitle">Stranger // Remote Signal</div>
+                <div class="banner-subtitle">Android IP Camera Feed [192.168.1.201:4444]</div>
+              </div>
+            </div>
+            <div class="banner-badges">
+              <div class="banner-tag">AS6453 DIRECT</div>
+              <div class="banner-tag">34MS SUBSEA</div>
+            </div>
           </div>
-          <div class="cam-overlay">LOCAL</div>
+
+          <!-- Video Canvas -->
+          <div class="video-viewport">
+            <img id="remoteVideo" src="/video_feed" alt="Stranger Stream">
+            <div class="viewport-overlay">STRANGER ACTIVE // DIRECT LINK</div>
+            <div class="viewport-fps" id="fpsDisplay">30 FPS</div>
+          </div>
+
+          <!-- 3 Stat Badges along bottom of main frame -->
+          <div class="stat-strip">
+            <div class="stat-box">
+              <div class="stat-icon">NET</div>
+              <div class="stat-meta">
+                <span class="stat-label">Subsea Cable Link</span>
+                <span class="stat-value">PEACE / SEA-ME-WE-5</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-icon">GEO</div>
+              <div class="stat-meta">
+                <span class="stat-label">Regional Access</span>
+                <span class="stat-value">East Africa & Asia Whitelist</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-icon">SEC</div>
+              <div class="stat-meta">
+                <span class="stat-label">Security Shield</span>
+                <span class="stat-value">VPN Guard + 80 req/min</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Controls -->
-      <div class="panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-        <div class="panel-header">
-          <span class="panel-label">Stream Controls</span>
-        </div>
-        <div class="ctrl-list" style="flex:1; overflow-y:auto;">
-          <div class="ctrl-row">
-            <span class="ctrl-label">Source</span>
-            <span class="ctrl-val" id="srcDisplay">Phone Camera</span>
+      <!-- MIDDLE: WEBCAM + CHAT (matching screenshot middle column) -->
+      <div class="middle-column">
+        <!-- Top: Local Laptop Cam Preview -->
+        <div class="cam-card">
+          <div class="cam-header">
+            <span class="cam-label">You // Local Laptop Cam</span>
+            <span class="cam-status" id="camStatusText">LOCAL</span>
           </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">Filter</span>
-            <span class="ctrl-val" id="fxDisplay">Direct Raw</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">Latency</span>
-            <span class="ctrl-val">34ms Indian Ocean</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">Geofence</span>
-            <span class="ctrl-val">Enforced</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">VPN Guard</span>
-            <span class="ctrl-val">Active (900s ban)</span>
-          </div>
-          <div class="ctrl-row">
-            <span class="ctrl-label">Rate Limit</span>
-            <span class="ctrl-val">80 req/min</span>
+          <div class="cam-body">
+            <video id="localCam" autoplay playsinline muted style="display:none;"></video>
+            <div id="camFallback" class="cam-offline-note">
+              Webcam preview offline.<br>Click "ENABLE LAPTOP CAM" on the right.
+            </div>
           </div>
         </div>
-        <div class="select-group">
-          <span class="select-label">Video Filter</span>
-          <select class="select-styled" id="filterSelect" onchange="setFilter(this.value)">
+
+        <!-- Bottom: Chat Panel -->
+        <div class="chat-card">
+          <div class="chat-title-banner">
+            <h3>Live Chat</h3>
+          </div>
+          <div class="chat-stream-box" id="chatBox">
+            <div class="msg-row msg-sys">Xin session active. You are now chatting with a random stranger.</div>
+            <div class="msg-row msg-sys">Jurisdiction check: East Africa / South Africa / Asia active.</div>
+            <div class="msg-row msg-stranger">
+              <span class="author">Stranger: </span>
+              <span class="msg-content">Camera stream verified via Android IP Camera.</span>
+            </div>
+          </div>
+          <div class="chat-compose">
+            <input type="text" id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendChat()">
+            <button onclick="sendChat()">SEND</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: ACTION BADGE CARDS (Angular Trapezoid Badges matching screenshot) -->
+      <div class="controls-column">
+        <!-- Action Card 1: Next Stranger -->
+        <div class="action-badge-card" onclick="nextStranger()">
+          <div class="trapezoid-icon">NEXT</div>
+          <div class="action-card-text">
+            <span class="action-card-title">Next Stranger</span>
+            <span class="action-card-desc">Cycle to new peer across mesh</span>
+          </div>
+        </div>
+
+        <!-- Action Card 2: Enable Local Cam -->
+        <div class="action-badge-card" onclick="initWebcam()">
+          <div class="trapezoid-icon" id="camBadgeIcon">CAM</div>
+          <div class="action-card-text">
+            <span class="action-card-title" id="camActionTitle">Enable Cam</span>
+            <span class="action-card-desc">Activate laptop camera</span>
+          </div>
+        </div>
+
+        <!-- Action Card 3: Disconnect -->
+        <div class="action-badge-card" onclick="disconnectStream()">
+          <div class="trapezoid-icon" style="background:#b91c1c;">STOP</div>
+          <div class="action-card-text">
+            <span class="action-card-title">Disconnect</span>
+            <span class="action-card-desc">Halt live stream session</span>
+          </div>
+        </div>
+
+        <!-- Filters Select Box -->
+        <div class="filter-panel">
+          <label>Video FX Filter</label>
+          <select class="custom-select" id="fxSelect" onchange="setFx(this.value)">
             <option value="none">Direct Raw</option>
             <option value="cyberpunk">Cyberpunk Neon</option>
             <option value="cartoon">Cartoon Edge</option>
             <option value="thermal">Thermal Jet</option>
             <option value="glitch">Glitch Shift</option>
           </select>
-          <span class="select-label">Video Source</span>
-          <select class="select-styled" id="sourceSelect" onchange="setSource(this.value)">
-            <option value="phone">Phone IP Camera (4444)</option>
+        </div>
+
+        <!-- Source Select Box -->
+        <div class="filter-panel">
+          <label>Video Signal Source</label>
+          <select class="custom-select" id="srcSelect" onchange="setSrc(this.value)">
+            <option value="phone">Phone IP Cam (4444)</option>
             <option value="synthetic">Synthetic Radar</option>
           </select>
         </div>
+
+        <!-- Engine Studio Link -->
+        <div class="action-badge-card" onclick="window.location='/studio'">
+          <div class="trapezoid-icon">STUDIO</div>
+          <div class="action-card-text">
+            <span class="action-card-title">Engine Studio</span>
+            <span class="action-card-desc">Full diagnostics dashboard</span>
+          </div>
+        </div>
       </div>
+
     </div>
 
-    <!-- MAIN STREAM -->
-    <div class="main-stream">
-      <img id="remoteVideo" src="/video_feed" alt="Remote Stream">
-      <div class="stream-hud-tl">
-        <div class="hud-title" id="streamTitle">Stranger Connected</div>
-        <div class="hud-sub">Remote feed via Android IP Camera [192.168.1.201]</div>
-      </div>
-      <div class="stream-hud-tr">
-        <div class="hud-tag hud-tag-live" id="liveTag">LIVE</div>
-        <div class="hud-tag">30 FPS</div>
-      </div>
-      <div class="stream-hud-br" id="streamClock"></div>
-    </div>
-
-    <!-- RIGHT SIDEBAR: CHAT -->
-    <div class="sidebar-right">
-      <div class="panel chat-panel" style="flex:1;">
-        <div class="panel-header">
-          <span class="panel-label">Chat</span>
-          <span class="panel-badge badge-online" id="peerBadge">Peer Connected</span>
+    <!-- BOTTOM ROW: 4 SCENE STATUS CARDS (matching screenshot "Offline/Starting/Ending/BRB") -->
+    <div class="bottom-scene-row">
+      <div class="scene-card active-scene" id="cardOnline">
+        <div class="scene-left">
+          <div class="scene-badge">01</div>
+          <div class="scene-info">
+            <span class="scene-title">Live Online</span>
+            <span class="scene-sub">Direct peer-to-peer active</span>
+          </div>
         </div>
-        <div class="chat-body" id="chatBox">
-          <div class="msg msg-sys">Session started. You are chatting with a random stranger.</div>
-          <div class="msg msg-sys">Geofence active: East Africa / South Africa / Asia only.</div>
-        </div>
-        <div class="chat-input-wrap">
-          <input type="text" id="chatInput" class="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg()">
-          <button class="chat-send" onclick="sendMsg()">SEND</button>
-        </div>
+        <div class="scene-code">ONLINE</div>
       </div>
 
-      <!-- Quick Links -->
-      <div class="panel" style="flex-shrink:0;">
-        <div class="panel-header">
-          <span class="panel-label">Platform</span>
-        </div>
-        <div class="links-panel">
-          <div class="link-card" onclick="window.location='/studio'">
-            <div class="link-icon">S</div>
-            <div class="link-text">Studio</div>
-          </div>
-          <div class="link-card" onclick="window.location='/api/status'">
-            <div class="link-icon">A</div>
-            <div class="link-text">API Status</div>
-          </div>
-          <div class="link-card" onclick="initCam()">
-            <div class="link-icon">C</div>
-            <div class="link-text">Enable Cam</div>
-          </div>
-          <div class="link-card" onclick="nextStranger()">
-            <div class="link-icon">N</div>
-            <div class="link-text">Next Peer</div>
+      <div class="scene-card" onclick="window.location='/studio'">
+        <div class="scene-left">
+          <div class="scene-badge">02</div>
+          <div class="scene-info">
+            <span class="scene-title">1000 Streams</span>
+            <span class="scene-sub">MediaMTX + NGINX Edge cluster</span>
           </div>
         </div>
+        <div class="scene-code">SCALE</div>
       </div>
-    </div>
 
-    <!-- BOTTOM BAR -->
-    <div class="bottombar">
-      <div class="status-pills">
-        <button class="pill pill-active" id="btnNext" onclick="nextStranger()">
-          <span class="pill-dot"></span> Next Stranger
-        </button>
-        <button class="pill" id="btnCam" onclick="initCam()">
-          <span class="pill-dot"></span> Enable Cam
-        </button>
-        <button class="pill pill-danger" id="btnStop" onclick="disconnect()">
-          <span class="pill-dot"></span> Disconnect
-        </button>
+      <div class="scene-card">
+        <div class="scene-left">
+          <div class="scene-badge">03</div>
+          <div class="scene-info">
+            <span class="scene-title">Indian Ocean</span>
+            <span class="scene-sub">Mombasa to Asia subsea route</span>
+          </div>
+        </div>
+        <div class="scene-code">34MS</div>
       </div>
-      <div class="bottom-info">
-        <div class="bottom-credit"><span>Xin</span> // Direct Mesh Protocol</div>
+
+      <div class="scene-card" onclick="window.location='/api/status'">
+        <div class="scene-left">
+          <div class="scene-badge">04</div>
+          <div class="scene-info">
+            <span class="scene-title">API Status</span>
+            <span class="scene-sub">Firewall & ban table metrics</span>
+          </div>
+        </div>
+        <div class="scene-code">HEALTH</div>
       </div>
     </div>
 
   </div>
 
   <script>
-    // Clock
-    function tickClock() {
-      const el = document.getElementById('streamClock');
-      if (el) el.textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    }
-    setInterval(tickClock, 1000); tickClock();
-
-    // Local webcam
+    // 1. Local Laptop Webcam Ingestion
     let localStream = null;
-    async function initCam() {
-      const vid = document.getElementById('localVideo');
-      const fb = document.getElementById('camFallback');
-      const badge = document.getElementById('camBadge');
-      const btn = document.getElementById('btnCam');
+    async function initWebcam() {
+      const vid = document.getElementById('localCam');
+      const fallback = document.getElementById('camFallback');
+      const title = document.getElementById('camActionTitle');
+      const statusText = document.getElementById('camStatusText');
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false});
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
         vid.srcObject = localStream;
         vid.style.display = 'block';
-        fb.style.display = 'none';
-        badge.textContent = 'Active';
-        badge.className = 'panel-badge badge-online';
-        btn.innerHTML = '<span class="pill-dot"></span> Cam Active';
-        btn.classList.add('pill-active');
-      } catch(e) {
-        console.warn('Webcam error:', e);
-        fb.textContent = 'Camera unavailable or permission denied';
+        if (fallback) fallback.style.display = 'none';
+        title.textContent = 'Cam Active';
+        statusText.textContent = 'ACTIVE';
+        statusText.style.color = '#2ed573';
+      } catch (err) {
+        console.warn('Webcam access error:', err);
+        if (fallback) fallback.textContent = 'Webcam unavailable or permission denied.';
       }
     }
 
-    // Chat
+    // 2. Chat Logic
     async function pollChat() {
       try {
-        const r = await fetch('/api/chat');
-        if (!r.ok) return;
-        const msgs = await r.json();
+        const res = await fetch('/api/chat');
+        if (!res.ok) return;
+        const msgs = await res.json();
         const box = document.getElementById('chatBox');
-        let html = '<div class="msg msg-sys">Session started. Chatting with a random stranger.</div>';
-        html += '<div class="msg msg-sys">Geofence: East Africa / South Africa / Asia.</div>';
+        let html = '<div class="msg-row msg-sys">Xin session active. You are now chatting with a random stranger.</div>';
+        html += '<div class="msg-row msg-sys">Jurisdiction check: East Africa / South Africa / Asia active.</div>';
         msgs.forEach(m => {
           if (m.user === 'System') {
-            html += '<div class="msg msg-sys">' + esc(m.text) + '</div>';
+            html += `<div class="msg-row msg-sys">${escapeHtml(m.text)}</div>`;
           } else if (m.user === 'You') {
-            html += '<div class="msg msg-you"><span class="msg-name">You: </span><span class="msg-text">' + esc(m.text) + '</span></div>';
+            html += `<div class="msg-row msg-you"><span class="author">You: </span><span class="msg-content">${escapeHtml(m.text)}</span></div>`;
           } else {
-            html += '<div class="msg msg-stranger"><span class="msg-name">' + esc(m.user) + ': </span><span class="msg-text">' + esc(m.text) + '</span></div>';
+            html += `<div class="msg-row msg-stranger"><span class="author">${escapeHtml(m.user)}: </span><span class="msg-content">${escapeHtml(m.text)}</span></div>`;
           }
         });
         box.innerHTML = html;
         box.scrollTop = box.scrollHeight;
-      } catch(e) {}
-    }
-    async function sendMsg() {
-      const inp = document.getElementById('chatInput');
-      const t = inp.value.trim();
-      if (!t) return;
-      inp.value = '';
-      await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:'You',text:t})});
-      pollChat();
-    }
-    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    // Stream controls
-    async function setFilter(v) {
-      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filter:v})});
-      const names = {none:'Direct Raw',cyberpunk:'Cyberpunk Neon',cartoon:'Cartoon Edge',thermal:'Thermal Jet',glitch:'Glitch Shift'};
-      document.getElementById('fxDisplay').textContent = names[v] || v;
-    }
-    async function setSource(v) {
-      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:v})});
-      const names = {phone:'Phone Camera',synthetic:'Synthetic Radar'};
-      document.getElementById('srcDisplay').textContent = names[v] || v;
+      } catch (e) {}
     }
 
+    async function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      try {
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: 'You', text: text })
+        });
+        pollChat();
+      } catch (e) {}
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 3. Omegle Controls
     function nextStranger() {
       const img = document.getElementById('remoteVideo');
-      const title = document.getElementById('streamTitle');
-      const peer = document.getElementById('peerBadge');
-      const tag = document.getElementById('liveTag');
-      title.textContent = 'Searching...';
-      peer.textContent = 'Connecting';
-      peer.className = 'panel-badge badge-accent';
-      tag.textContent = 'WAIT';
+      const title = document.getElementById('bannerTitle');
+      const box = document.getElementById('chatBox');
+      title.textContent = 'Searching For Next Peer...';
       img.src = '';
       setTimeout(() => {
         img.src = '/video_feed?t=' + Date.now();
-        title.textContent = 'Stranger Connected';
-        peer.textContent = 'Peer Connected';
-        peer.className = 'panel-badge badge-online';
-        tag.textContent = 'LIVE';
-        const box = document.getElementById('chatBox');
-        box.innerHTML += '<div class="msg msg-sys">New peer connected via subsea Indian Ocean backbone.</div>';
+        title.textContent = 'Stranger // Remote Signal';
+        box.innerHTML += '<div class="msg-row msg-sys">Connected to new peer across subsea Indian Ocean backbone.</div>';
         box.scrollTop = box.scrollHeight;
-      }, 700);
+      }, 600);
     }
 
-    function disconnect() {
+    function disconnectStream() {
       const img = document.getElementById('remoteVideo');
-      const title = document.getElementById('streamTitle');
-      const peer = document.getElementById('peerBadge');
-      const tag = document.getElementById('liveTag');
-      img.src = '';
-      title.textContent = 'Disconnected';
-      peer.textContent = 'Offline';
-      peer.className = 'panel-badge badge-accent';
-      tag.textContent = 'OFF';
+      const title = document.getElementById('bannerTitle');
       const box = document.getElementById('chatBox');
-      box.innerHTML += '<div class="msg msg-sys">Session ended. Press Next Stranger to reconnect.</div>';
+      img.src = '';
+      title.textContent = 'Session Disconnected';
+      box.innerHTML += '<div class="msg-row msg-sys" style="border-color:#ff4757;color:#ff4757;">Session disconnected. Click NEXT STRANGER to reconnect.</div>';
       box.scrollTop = box.scrollHeight;
     }
 
-    // Init
+    async function setFx(f) {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filter: f })
+      });
+    }
+
+    async function setSrc(s) {
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: s })
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      initWebcam();
       pollChat();
-      setInterval(pollChat, 2500);
-      initCam();
+      setInterval(pollChat, 2000);
     });
   </script>
 </body>

@@ -5,401 +5,330 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xin - Engine Studio</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-base: #1a1a2e;
-      --bg-panel: #22223a;
-      --bg-panel-alt: #2a2a44;
-      --bg-input: #16162b;
-      --accent: #e8405a;
-      --accent-hover: #ff5a72;
-      --accent-dim: rgba(232, 64, 90, 0.15);
-      --accent-border: rgba(232, 64, 90, 0.4);
-      --text-primary: #f0f0f4;
-      --text-secondary: #9494b0;
-      --text-muted: #6a6a88;
-      --border: #33334d;
-      --border-light: #3d3d5c;
-      --online-green: #2ecc71;
-      --radius: 8px;
-      --radius-sm: 5px;
+      --bg-darkest: #0e0f17;
+      --bg-base: #141622;
+      --bg-panel: #1b1d2c;
+      --bg-panel-alt: #222538;
+      --accent: #ff4757;
+      --accent-hover: #ff6b81;
+      --accent-dim: rgba(255, 71, 87, 0.15);
+      --accent-glow: rgba(255, 71, 87, 0.35);
+      --text-white: #ffffff;
+      --text-primary: #e4e6eb;
+      --text-secondary: #9094a6;
+      --text-muted: #5d6175;
+      --border-dark: #2a2e45;
+      --green: #2ed573;
     }
 
     html, body {
-      height: 100%;
-      background: var(--bg-base);
+      min-height: 100%;
+      background: var(--bg-darkest);
       color: var(--text-primary);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      overflow: hidden;
     }
 
-    .shell {
-      height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      grid-template-rows: auto 1fr auto;
-      gap: 10px;
-      padding: 10px;
+    .app-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 18px;
+      gap: 14px;
+      background: radial-gradient(circle at 80% 20%, #1a1c2e 0%, var(--bg-darkest) 70%);
     }
 
-    /* ---- TOP BAR ---- */
-    .topbar {
-      grid-column: 1 / -1;
+    /* TOP HEADER */
+    .header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 18px;
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 10px 20px;
     }
-    .topbar-brand {
+    .brand-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
-    .topbar-logo {
+    .brand-mark {
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
       width: 36px;
       height: 36px;
-      background: var(--accent);
-      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 900;
-      font-size: 18px;
-      color: #fff;
+      border-radius: 6px;
     }
-    .topbar-title {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
+    .brand-text h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-white);
       text-transform: uppercase;
+      line-height: 1;
     }
-    .topbar-sub {
+    .brand-text span {
       font-size: 11px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-top: 1px;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
     }
     .nav-btn {
-      background: var(--bg-panel-alt);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
       text-decoration: none;
-      transition: all 0.15s;
-      font-family: inherit;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.2s;
     }
     .nav-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
+      background: var(--accent-hover);
     }
 
-    /* ---- PANELS ---- */
-    .panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    .panel-header {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .panel-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-secondary);
-    }
-    .panel-badge {
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    .badge-online {
-      background: rgba(46, 204, 113, 0.15);
-      color: var(--online-green);
-      border: 1px solid rgba(46, 204, 113, 0.3);
-    }
-    .badge-accent {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid var(--accent-border);
+    /* Studio Grid */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+      flex: 1;
     }
 
-    /* ---- MAIN CANVAS ---- */
-    .main-canvas {
-      position: relative;
-      background: #0f0f20;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+    /* Left: Live Canvas Card */
+    .canvas-card {
+      background: var(--bg-base);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 0 25px var(--accent-glow);
     }
-    .canvas-view {
+    .canvas-banner {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .canvas-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .canvas-viewport {
       flex: 1;
+      background: #000;
+      min-height: 440px;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      position: relative;
     }
-    .canvas-view img {
+    .canvas-viewport img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .canvas-hud {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-    }
-    .canvas-hud-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: #fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-    }
-    .canvas-hud-sub {
-      font-size: 11px;
-      color: rgba(255,255,255,0.55);
-      font-weight: 500;
-      margin-top: 4px;
-    }
 
-    /* Filter bar */
-    .filter-bar {
-      display: flex;
-      gap: 6px;
-      padding: 10px 14px;
-      border-top: 1px solid var(--border);
+    /* Filter Action Strip */
+    .filter-strip {
       background: var(--bg-panel);
+      padding: 12px 14px;
+      border-top: 1px solid var(--border-dark);
+      display: flex;
       flex-wrap: wrap;
+      gap: 8px;
     }
-    .fx-btn {
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
+    .fx-chip {
       background: var(--bg-panel-alt);
-      color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 600;
-      font-family: inherit;
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.15s;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
     }
-    .fx-btn:hover, .fx-btn.active {
+    .fx-chip:hover, .fx-chip.active {
+      background: var(--accent);
       border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
+      color: #fff;
     }
 
-    /* ---- RIGHT: DIAGNOSTICS ---- */
-    .sidebar-right {
+    /* Right: Diagnostics & Controls */
+    .diagnostics-column {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      overflow: hidden;
+      gap: 14px;
     }
-
-    .diag-list {
-      padding: 8px 10px;
+    .diag-panel {
+      background: var(--bg-base);
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 12px;
     }
-    .diag-row {
+    .diag-panel h2 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text-white);
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 6px;
+    }
+    .diag-table {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .diag-entry {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-panel-alt);
-      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      padding: 8px 12px;
+      border-radius: 4px;
     }
-    .diag-label {
+    .diag-key {
       font-size: 11px;
+      color: var(--text-secondary);
       font-weight: 600;
-      color: var(--text-muted);
     }
     .diag-val {
-      font-size: 11px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
       font-weight: 700;
       color: var(--accent);
-      text-align: right;
     }
 
-    .source-btns {
-      display: flex;
-      gap: 6px;
-      padding: 10px;
+    .source-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
     .src-btn {
-      flex: 1;
-      padding: 10px 8px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--bg-panel-alt);
-      color: var(--text-secondary);
-      font-size: 11px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
       font-weight: 700;
-      font-family: inherit;
       cursor: pointer;
       text-align: center;
-      transition: all 0.15s;
+      transition: all 0.2s;
     }
     .src-btn:hover {
+      background: var(--accent);
       border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
+      color: #fff;
     }
-
-    /* ---- BOTTOM BAR ---- */
-    .bottombar {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .bottom-credit {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 8px 14px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-    .bottom-credit span { color: var(--accent); }
   </style>
 </head>
 <body>
-  <div class="shell">
-
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div class="topbar-brand">
-        <div class="topbar-logo">X</div>
-        <div>
-          <div class="topbar-title">Xin // Vision Engine Studio</div>
-          <div class="topbar-sub">Stream processing and diagnostics dashboard</div>
+  <div class="app-viewport">
+    <header class="header-bar">
+      <div class="brand-group">
+        <div class="brand-mark">X</div>
+        <div class="brand-text">
+          <h1>Xin // Vision Studio</h1>
+          <span>1,000 STREAMS PIPELINE DIAGNOSTICS</span>
         </div>
       </div>
       <a href="/" class="nav-btn">Return to 1-on-1 Stream</a>
-    </div>
+    </header>
 
-    <!-- MAIN CANVAS -->
-    <div class="main-canvas">
-      <div class="canvas-view">
-        <img src="/video_feed" alt="Engine Stream">
-        <div class="canvas-hud">
-          <div class="canvas-hud-title">Live Engine Canvas</div>
-          <div class="canvas-hud-sub">Real-time video processing pipeline output</div>
+    <div class="studio-grid">
+      <!-- Live Canvas Card -->
+      <div class="canvas-card">
+        <div class="canvas-banner">
+          <div class="canvas-title">Live Vision Processing Canvas</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;">30 FPS // RAW BUFFER</div>
         </div>
-      </div>
-      <div class="filter-bar">
-        <button class="fx-btn active" onclick="setFx('none', this)">Direct Raw</button>
-        <button class="fx-btn" onclick="setFx('cyberpunk', this)">Cyberpunk Neon</button>
-        <button class="fx-btn" onclick="setFx('cartoon', this)">Cartoon Edge</button>
-        <button class="fx-btn" onclick="setFx('thermal', this)">Thermal Jet</button>
-        <button class="fx-btn" onclick="setFx('glitch', this)">Glitch Shift</button>
-      </div>
-    </div>
-
-    <!-- RIGHT: DIAGNOSTICS -->
-    <div class="sidebar-right">
-
-      <div class="panel" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-        <div class="panel-header">
-          <span class="panel-label">Engine Diagnostics</span>
-          <span class="panel-badge badge-online">Online</span>
+        <div class="canvas-viewport">
+          <img src="/video_feed" alt="Studio Feed">
         </div>
-        <div class="diag-list" style="flex:1; overflow-y:auto;">
-          <div class="diag-row">
-            <span class="diag-label">Target Architecture</span>
-            <span class="diag-val">1000 Streams</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Ingest Pipeline</span>
-            <span class="diag-val">WebRTC / RTSP / MJPEG</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Core Relay</span>
-            <span class="diag-val">MediaMTX + NGINX Edge</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Hardware Accel</span>
-            <span class="diag-val">VA-API / NVENC</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Subsea Link</span>
-            <span class="diag-val">PEACE / SEA-ME-WE-5</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Link Latency</span>
-            <span class="diag-val">34ms</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Geofence</span>
-            <span class="diag-val">EA + SA + ASIA</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">VPN Ban Window</span>
-            <span class="diag-val">900s (15 min)</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Rate Limit</span>
-            <span class="diag-val">80 req/min</span>
-          </div>
-          <div class="diag-row">
-            <span class="diag-label">Error Handlers</span>
-            <span class="diag-val">400/403/404/429/500</span>
-          </div>
+        <div class="filter-strip">
+          <button class="fx-chip active" onclick="setFx('none', this)">Direct Raw</button>
+          <button class="fx-chip" onclick="setFx('cyberpunk', this)">Cyberpunk Neon</button>
+          <button class="fx-chip" onclick="setFx('cartoon', this)">Cartoon Edge</button>
+          <button class="fx-chip" onclick="setFx('thermal', this)">Thermal Jet</button>
+          <button class="fx-chip" onclick="setFx('glitch', this)">Glitch Shift</button>
         </div>
       </div>
 
-      <div class="panel" style="flex-shrink:0;">
-        <div class="panel-header">
-          <span class="panel-label">Source Switcher</span>
+      <!-- Diagnostics Column -->
+      <div class="diagnostics-column">
+        <div class="diag-panel">
+          <h2>Architecture Metrics</h2>
+          <div class="diag-table">
+            <div class="diag-entry"><span class="diag-key">Target Throughput:</span><span class="diag-val">1000 Concurrent Streams</span></div>
+            <div class="diag-entry"><span class="diag-key">Ingest Protocol:</span><span class="diag-val">WebRTC / RTSP / MJPEG</span></div>
+            <div class="diag-entry"><span class="diag-key">Cluster Relay:</span><span class="diag-val">MediaMTX + NGINX Edge</span></div>
+            <div class="diag-entry"><span class="diag-key">Hardware Acceleration:</span><span class="diag-val">VA-API / NVENC Active</span></div>
+            <div class="diag-entry"><span class="diag-key">Indian Ocean Subsea:</span><span class="diag-val">PEACE / SEA-ME-WE-5 (34ms)</span></div>
+            <div class="diag-entry"><span class="diag-key">Geofence Policy:</span><span class="diag-val">East Africa, SA & Asia</span></div>
+            <div class="diag-entry"><span class="diag-key">VPN Detection Ban:</span><span class="diag-val">900 Seconds (15 min)</span></div>
+            <div class="diag-entry"><span class="diag-key">Rate Limit Ceiling:</span><span class="diag-val">80 Requests / Min</span></div>
+          </div>
         </div>
-        <div class="source-btns">
-          <button class="src-btn" onclick="setSrc('phone')">Phone Camera (4444)</button>
-          <button class="src-btn" onclick="setSrc('synthetic')">Synthetic Radar</button>
+
+        <div class="diag-panel">
+          <h2>Video Source Switcher</h2>
+          <div class="source-buttons">
+            <button class="src-btn" onclick="setSrc('phone')">Phone Cam (4444)</button>
+            <button class="src-btn" onclick="setSrc('synthetic')">Synthetic Radar</button>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- BOTTOM BAR -->
-    <div class="bottombar">
-      <div class="bottom-credit"><span>Xin</span> // Vision Engine Studio // Direct Mesh Protocol</div>
     </div>
   </div>
 
   <script>
     async function setFx(f, el) {
-      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filter:f})});
-      document.querySelectorAll('.fx-btn').forEach(b => b.classList.remove('active'));
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filter: f })
+      });
+      document.querySelectorAll('.fx-chip').forEach(b => b.classList.remove('active'));
       if (el) el.classList.add('active');
     }
     async function setSrc(s) {
-      await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source:s})});
+      await fetch('/api/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: s })
+      });
     }
   </script>
 </body>
