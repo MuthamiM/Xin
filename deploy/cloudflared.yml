@@ -1,0 +1,23 @@
+# Cloudflare Named Tunnel Configuration for Xin
+# Place this in ~/.cloudflared/config.yml or in your deploy directory
+
+tunnel: YOUR_TUNNEL_UUID_HERE
+credentials-file: /etc/cloudflared/YOUR_TUNNEL_UUID_HERE.json
+protocol: http2
+
+ingress:
+  # Main Xin 1-on-1 Video Stream and Chat
+  - hostname: xin.yourdomain.com
+    service: http://localhost:5000
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: true
+
+  # MediaMTX High-Throughput HLS / WebRTC Egress
+  - hostname: stream.yourdomain.com
+    service: http://localhost:8888
+    originRequest:
+      connectTimeout: 30s
+
+  # Default Catch-all rule
+  - service: http_status:404

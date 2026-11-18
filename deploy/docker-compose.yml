@@ -48,3 +48,11 @@ services:
       - ./nginx_edge.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - xin_app
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: xin_cloudflared
+    restart: unless-stopped
+    command: tunnel --protocol http2 --url http://nginx_edge:80
+    depends_on:
+      - nginx_edge
