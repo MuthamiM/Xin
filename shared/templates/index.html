@@ -742,8 +742,12 @@
   </div>
 
   <script>
-    // State
-    const userId = 'usr_' + Math.random().toString(36).substring(2, 10);
+    // Persistent Session ID per device tab (avoids phantom user IDs on refresh)
+    let userId = sessionStorage.getItem('xin_uid');
+    if (!userId) {
+      userId = 'usr_' + Math.random().toString(36).substring(2, 10);
+      sessionStorage.setItem('xin_uid', userId);
+    }
     let partnerId = null;
     let isInitiator = false;
     let localStream = null;
@@ -956,10 +960,23 @@
           const res = await fetch(`/api/signaling/poll?user_id=${userId}`);
           if (!res.ok) return;
           const data = await res.json();
-          if (data.messages) data.messages.forEach(handleSignal);
+          if (data.messages && data.messages.length > 0) {
+            for (const msg of data.messages) {
+              await handleSignal(msg);
+            }
+          }
         } catch (err) {}
-      }, 800);
+      }, 500);
     }
+
+    // Clean up cleanly on tab close or navigation
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/signaling/leave', JSON.stringify({ user_id: userId }));
+        }
+      } catch (e) {}
+    });
 
     function sendSignal(payload) {
       if (!partnerId) return;
@@ -1120,12 +1137,12 @@
       const remoteVid = document.getElementById('remoteVideo');
       const statusText = document.getElementById('callStatusText');
       waitLayer.style.display = 'flex';
-      document.getElementById('waitTitleText').textContent = 'Call Disconnected';
-      document.getElementById('waitDescText').textContent = 'Click NEXT to match with another stranger.';
+      document.getElementById('waitTitleText').textContent = 'Searching For Partner';
+      document.getElementById('waitDescText').textContent = 'Waiting for phone or laptop peer to enter call...';
       remoteVid.srcObject = null;
-      statusText.textContent = 'STANDBY';
-      statusText.style.color = 'var(--text-muted)';
-      addSysLog('Stranger disconnected.');
+      statusText.textContent = 'SEARCHING // IN QUEUE';
+      statusText.style.color = '#3b82f6';
+      addSysLog('Partner disconnected. Automatically re-queuing to find next partner...');
 
       resetChatPermission();
 
@@ -1134,6 +1151,17 @@
         peerConnection = null;
       }
       partnerId = null;
+
+      // Automatically re-enter matchmaking immediately so devices connect with zero clicks
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'join', user_id: userId }));
+      } else {
+        fetch('/api/signaling/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId })
+        }).catch(() => {});
+      }
     }
 
     // 6. Action Controls (All Blue Active States)

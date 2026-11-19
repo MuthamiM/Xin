@@ -1,7 +1,7 @@
 """
 Xin WebRTC Signaling Engine
 Handles real-time session negotiation between phone and laptop.
-Supports both WebSocket and HTTP polling fallback with message queuing.
+Provides instant auto-matchmaking so any 2 devices online meet immediately.
 """
 
 import json
@@ -51,55 +51,89 @@ class SignalingHub:
             if user_id not in self.user_messages:
                 self.user_messages[user_id] = []
             self.user_messages[user_id].append(msg)
-            # Cap message queue length
             if len(self.user_messages[user_id]) > 50:
                 self.user_messages[user_id].pop(0)
 
+    def _purge_stale_locked(self):
+        """Remove users who haven't polled or pinged in 10 seconds."""
+        now = time.time()
+        stale_timeout = 10.0
+        stale_users = [
+            uid for uid, ts in self.user_last_seen.items()
+            if (now - ts) > stale_timeout
+        ]
+        for uid in stale_users:
+            self._cleanup_user(uid, notify_partner=True)
+
+    def _try_match_waiting_locked(self):
+        """Match pairs from the waiting queue immediately."""
+        now = time.time()
+        # Clean queue of stale or already-paired users
+        clean_queue = []
+        for uid in self.waiting_queue:
+            if uid in self.user_to_room:
+                continue
+            if (now - self.user_last_seen.get(uid, 0)) <= 10.0:
+                if uid not in clean_queue:
+                    clean_queue.append(uid)
+        self.waiting_queue = clean_queue
+
+        matched_pairs = []
+        while len(self.waiting_queue) >= 2:
+            u1 = self.waiting_queue.pop(0)
+            u2 = self.waiting_queue.pop(0)
+            if u1 == u2:
+                self.waiting_queue.append(u1)
+                break
+
+            room_id = f"room-{uuid.uuid4().hex[:8]}"
+            self.rooms[room_id] = {
+                "peers": [u1, u2],
+                "initiator": u1,
+                "created": now
+            }
+            self.user_to_room[u1] = room_id
+            self.user_to_room[u2] = room_id
+
+            # u1 is initiator (creates SDP offer)
+            self._send_to_user(u1, {
+                "type": "matched",
+                "room_id": room_id,
+                "peer_id": u2,
+                "is_initiator": True,
+                "message": "Connected with peer. Initiating WebRTC handshake."
+            })
+            # u2 is receiver (awaits SDP offer)
+            self._send_to_user(u2, {
+                "type": "matched",
+                "room_id": room_id,
+                "peer_id": u1,
+                "is_initiator": False,
+                "message": "Connected with peer. Awaiting offer."
+            })
+            matched_pairs.append((u1, u2))
+
+        return matched_pairs
+
     def find_match(self, user_id):
-        """Pair the user with another waiting peer, or put them in the queue."""
+        """Put the user in queue and immediately pair with any available peer."""
         with self.lock:
             self.touch(user_id)
-            # Remove any current room assignment
-            self._leave_room(user_id, notify_partner=True)
+            self._purge_stale_locked()
+            self._leave_room_locked(user_id, notify_partner=True)
 
-            # Clean waiting queue of stale users
-            now = time.time()
-            self.waiting_queue = [
-                uid for uid in self.waiting_queue
-                if uid != user_id and (now - self.user_last_seen.get(uid, 0) < 60)
-            ]
+            if user_id not in self.waiting_queue:
+                self.waiting_queue.append(user_id)
 
-            if self.waiting_queue:
-                partner_id = self.waiting_queue.pop(0)
-                room_id = f"room-{uuid.uuid4().hex[:8]}"
-                self.rooms[room_id] = {
-                    "peers": [partner_id, user_id],
-                    "initiator": partner_id,
-                    "created": now
-                }
-                self.user_to_room[partner_id] = room_id
-                self.user_to_room[user_id] = room_id
+            self._try_match_waiting_locked()
 
-                # Notify partner (initiator creates offer)
-                self._send_to_user(partner_id, {
-                    "type": "matched",
-                    "room_id": room_id,
-                    "peer_id": user_id,
-                    "is_initiator": True,
-                    "message": "Connected with peer. Initiating WebRTC handshake."
-                })
-                # Notify newcomer (waits for offer)
-                self._send_to_user(user_id, {
-                    "type": "matched",
-                    "room_id": room_id,
-                    "peer_id": partner_id,
-                    "is_initiator": False,
-                    "message": "Connected with peer. Awaiting offer."
-                })
-                return {"status": "matched", "room_id": room_id, "peer_id": partner_id}
+            if user_id in self.user_to_room:
+                room_id = self.user_to_room[user_id]
+                room = self.rooms.get(room_id, {})
+                peers = room.get("peers", [])
+                partner = peers[1] if peers and peers[0] == user_id else (peers[0] if peers else None)
+                return {"status": "matched", "room_id": room_id, "peer_id": partner}
             else:
-                if user_id not in self.waiting_queue:
-                    self.waiting_queue.append(user_id)
                 self._send_to_user(user_id, {
                     "type": "waiting",
                     "message": "In lobby queue. Waiting for remote peer to connect."
@@ -110,7 +144,6 @@ class SignalingHub:
         """Relay SDP Offer, Answer, or ICE candidate directly to the peer."""
         with self.lock:
             self.touch(sender_id)
-            # Verify they share a room
             sender_room = self.user_to_room.get(sender_id)
             target_room = self.user_to_room.get(target_id)
             if not sender_room or sender_room != target_room:
@@ -169,12 +202,10 @@ class SignalingHub:
         """Disconnect from active room."""
         with self.lock:
             self.touch(user_id)
-            self._leave_room(user_id, notify_partner=True)
-            if user_id in self.waiting_queue:
-                self.waiting_queue.remove(user_id)
+            self._cleanup_user(user_id, notify_partner=True)
             return {"status": "disconnected"}
 
-    def _leave_room(self, user_id, notify_partner=True):
+    def _leave_room_locked(self, user_id, notify_partner=True):
         room_id = self.user_to_room.pop(user_id, None)
         if room_id and room_id in self.rooms:
             room = self.rooms.pop(room_id, None)
@@ -187,19 +218,34 @@ class SignalingHub:
                                 "type": "peer_disconnected",
                                 "message": "Remote peer has disconnected."
                             })
+                        # Re-queue partner automatically so they don't sit stranded
+                        if peer_id not in self.waiting_queue:
+                            self.waiting_queue.append(peer_id)
 
     def _cleanup_user(self, user_id, notify_partner=True):
         if user_id in self.waiting_queue:
             self.waiting_queue.remove(user_id)
-        self._leave_room(user_id, notify_partner=notify_partner)
+        self._leave_room_locked(user_id, notify_partner=notify_partner)
         self.user_ws.pop(user_id, None)
         self.user_messages.pop(user_id, None)
         self.user_last_seen.pop(user_id, None)
 
     def poll_messages(self, user_id):
-        """HTTP polling endpoint to retrieve any queued messages."""
+        """HTTP polling endpoint with auto-queue and auto-matchmaking."""
         with self.lock:
             self.touch(user_id)
+            self._purge_stale_locked()
+
+            # If user has no room and is not in queue, add to queue and match
+            if user_id not in self.user_to_room and user_id not in self.waiting_queue:
+                self.waiting_queue.append(user_id)
+                self._send_to_user(user_id, {
+                    "type": "waiting",
+                    "message": "In lobby queue. Waiting for remote peer to connect."
+                })
+
+            self._try_match_waiting_locked()
+
             msgs = self.user_messages.get(user_id, [])
             self.user_messages[user_id] = []
             return msgs
@@ -207,7 +253,7 @@ class SignalingHub:
     def get_diagnostics(self):
         with self.lock:
             now = time.time()
-            active_users = sum(1 for ts in self.user_last_seen.values() if now - ts < 60)
+            active_users = sum(1 for ts in self.user_last_seen.values() if now - ts < 10.0)
             return {
                 "active_users": active_users,
                 "waiting_in_lobby": len(self.waiting_queue),
