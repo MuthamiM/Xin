@@ -49,4 +49,6 @@ class Config:
         "SA": "Saudi Arabia",
         "QA": "Qatar",
         "OM": "Oman",
+        # Cloudflare Edge & Origin Development Egress
+        "US": "United States",
     }

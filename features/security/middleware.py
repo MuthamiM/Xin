@@ -16,11 +16,11 @@ BAN_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <title>Xin - Temporary Suspension</title>
   <style>
-    body { background: #06070a; color: #9ca3af; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { max-width: 480px; background: #0d0f15; border: 1px solid #dc2626; padding: 32px; border-radius: 6px; text-align: center; }
+    body { background: #0e0f17; color: #9094a6; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .card { max-width: 480px; background: #141622; border: 1px solid #dc2626; padding: 32px; border-radius: 6px; text-align: center; }
     h2 { color: #ef4444; font-size: 16px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }
     p { font-size: 12px; line-height: 1.6; margin: 0 0 14px; }
-    .detail { background: #161922; padding: 12px; border-radius: 4px; font-size: 11px; color: #f87171; text-align: left; margin-bottom: 16px; }
+    .detail { background: #1b1d2c; padding: 12px; border-radius: 4px; font-size: 11px; color: #f87171; text-align: left; margin-bottom: 16px; }
   </style>
 </head>
 <body>
@@ -40,7 +40,10 @@ BAN_TEMPLATE = """<!DOCTYPE html>
 def attach_security_middleware(app):
     @app.before_request
     def validate_request():
-        client_ip = request.remote_addr or "127.0.0.1"
+        # Determine real client IP through Cloudflare Tunnel
+        client_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote_addr or "127.0.0.1"
+        if "," in client_ip:
+            client_ip = client_ip.split(",")[0].strip()
 
         # 1. Check if IP is currently under temporary ban
         banned, record = security_controller.is_banned(client_ip)

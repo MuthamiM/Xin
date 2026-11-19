@@ -5,24 +5,28 @@ from core.config import Config
 LOCAL_SUBNETS = {"127.0.0.1", "localhost", "::1"}
 
 def resolve_country():
-    cf_country = request.headers.get("CF-IPCountry")
-    if cf_country:
-        return cf_country.strip().upper()
-
-    viewer = request.headers.get("CloudFront-Viewer-Country") or request.headers.get("X-Country-Code")
-    if viewer:
-        return viewer.strip().upper()
-
+    # 1. Allow explicit geo test override via query parameter (?geo=KE)
     test_geo = request.args.get("geo")
     if test_geo:
         return test_geo.strip().upper()
 
+    # 2. Cloudflare Country Header
+    cf_country = request.headers.get("CF-IPCountry")
+    if cf_country:
+        return cf_country.strip().upper()
+
+    # 3. Other CDN headers
+    viewer = request.headers.get("CloudFront-Viewer-Country") or request.headers.get("X-Country-Code")
+    if viewer:
+        return viewer.strip().upper()
+
+    # 4. Local private networks default to Kenya (East Africa hub)
     client_ip = request.remote_addr or "127.0.0.1"
     if (client_ip.startswith("192.168.") or 
         client_ip.startswith("10.") or 
         client_ip.startswith("172.") or 
         client_ip in LOCAL_SUBNETS):
-        return "KE"  # Default to East Africa hub (Kenya) for local intranet network tests
+        return "KE"
 
     return "UNKNOWN"
 

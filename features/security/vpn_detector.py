@@ -1,15 +1,7 @@
 import time
 
-KNOWN_PROXY_HEADERS = [
-    "X-Forwarded-For",
-    "Via",
-    "X-ProxyUser-IP",
-    "X-Real-IP",
-    "Forwarded"
-]
-
 SUSPICIOUS_AGENTS = [
-    "curl", "wget", "python-requests", "scrapy", "nikto", "masscan", "sqlmap"
+    "wget", "python-requests", "scrapy", "nikto", "masscan", "sqlmap"
 ]
 
 class SecurityController:
@@ -53,16 +45,19 @@ class SecurityController:
         return True
 
     def scan_vpn_proxy(self, request, ip):
-        if ip in {"127.0.0.1", "localhost"} or ip.startswith("192.168.") or ip.startswith("10."):
+        if ip in {"127.0.0.1", "localhost"} or ip.startswith("192.168.") or ip.startswith("10.") or ip.startswith("172."):
             return False, ""
 
-        via = request.headers.get("Via")
-        if via:
-            return True, "Proxy header (Via) signature identified"
+        # Cloudflare Tunnel passes legitimate edge traffic
+        cf_ray = request.headers.get("CF-Ray")
+        if not cf_ray:
+            via = request.headers.get("Via")
+            if via:
+                return True, "Proxy header (Via) signature identified"
 
-        fwd = request.headers.get("X-Forwarded-For")
-        if fwd and len(fwd.split(",")) > 2:
-            return True, "Multi-hop proxy chain identified"
+            fwd = request.headers.get("X-Forwarded-For")
+            if fwd and len(fwd.split(",")) > 2:
+                return True, "Multi-hop proxy chain identified"
 
         threat = request.headers.get("CF-Threat-Score")
         if threat:
