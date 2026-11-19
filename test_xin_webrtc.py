@@ -21,7 +21,10 @@ assert "localVideo" in html, "Missing localVideo in index.html"
 assert "toggleMic" in html or "toggleMicrophone" in html, "Missing mic toggle in index.html"
 assert "toggleCam" in html or "toggleCamera" in html, "Missing cam toggle in index.html"
 assert "flipCam" in html or "switchCamera" in html, "Missing flip camera in index.html"
-assert "cycleViewMode" in html or "layout-split" in html, "Missing view mode switcher in index.html"
+assert "toggleExpand" in html or "cycleViewMode" in html or "layout-split" in html, "Missing view mode switcher in index.html"
+assert "msgRequestBanner" in html or "msg-request-banner" in html, "Missing message request banner in index.html"
+assert "sendChatRequest" in html, "Missing sendChatRequest in index.html"
+assert "respondChatRequest" in html, "Missing respondChatRequest in index.html"
 print("PASS: Index contains all WebRTC audio/video elements and view controls.")
 
 print("[TEST 2] GET /studio redirects to / ...")
@@ -90,6 +93,29 @@ assert res_ans.status_code == 200
 print("PASS: SDP Answer sent back from Phone to Laptop.")
 
 # Chat message exchange between phone and laptop
+print("[TEST 5] Message Request Workflow Verification...")
+# Phone requests chat permission
+res_req = client.post("/api/signaling/event", json={
+    "sender_id": "phone_user_2",
+    "target_id": "laptop_user_1",
+    "type": "chat_request"
+})
+assert res_req.status_code == 200
+poll_req = client.get("/api/signaling/poll?user_id=laptop_user_1").get_json()["messages"]
+assert any(m.get("type") == "chat_request" for m in poll_req)
+print("PASS: Chat request received by peer.")
+
+# Laptop accepts chat request
+res_acc = client.post("/api/signaling/event", json={
+    "sender_id": "laptop_user_1",
+    "target_id": "phone_user_2",
+    "type": "chat_accept"
+})
+assert res_acc.status_code == 200
+poll_acc = client.get("/api/signaling/poll?user_id=phone_user_2").get_json()["messages"]
+assert any(m.get("type") == "chat_accept" for m in poll_acc)
+print("PASS: Chat accept received by sender. Permission granted for messaging.")
+
 res_chat = client.post("/api/signaling/chat", json={
     "sender_id": "phone_user_2",
     "target_id": "laptop_user_1",
@@ -104,4 +130,4 @@ chat_msgs = res_poll_chat.get_json()["messages"]
 assert any(m.get("type") == "chat" and "Hello from my mobile" in m.get("text", "") for m in chat_msgs)
 print("PASS: Real-time chat message successfully exchanged between peers.")
 
-print("\nALL 4 WEBRTC & SIGNALING TESTS PASSED PERFECTLY!")
+print("\nALL 5 WEBRTC, VIEW EXPAND & MESSAGE PERMISSION TESTS PASSED PERFECTLY!")

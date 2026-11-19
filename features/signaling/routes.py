@@ -60,6 +60,11 @@ def register_socket_routes(sock):
                     text = payload.get("text", "")
                     signaling_hub.relay_chat(user_id, target_id, user_name, text)
 
+                elif msg_type in ["chat_request", "chat_accept", "chat_decline"]:
+                    target_id = payload.get("target_id")
+                    extra = {k: v for k, v in payload.items() if k not in ["type", "target_id"]}
+                    signaling_hub.relay_event(user_id, target_id, msg_type, extra)
+
                 elif msg_type == "next":
                     signaling_hub.next_peer(user_id)
 
@@ -114,6 +119,20 @@ def http_chat():
         return jsonify({"error": "Invalid chat payload", "code": 400}), 400
 
     ok = signaling_hub.relay_chat(sender_id, target_id, user_name, text.strip())
+    return jsonify({"status": "delivered" if ok else "not_routed"})
+
+
+@signaling_bp.route("/api/signaling/event", methods=["POST"])
+def http_event():
+    data = request.json or {}
+    sender_id = data.get("sender_id")
+    target_id = data.get("target_id")
+    event_type = data.get("type")
+    extra = data.get("extra", {})
+    if not sender_id or not target_id or not event_type:
+        return jsonify({"error": "Invalid event payload", "code": 400}), 400
+
+    ok = signaling_hub.relay_event(sender_id, target_id, event_type, extra)
     return jsonify({"status": "delivered" if ok else "not_routed"})
 
 

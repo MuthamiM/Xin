@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Xin - 1-on-1 Live Video Call</title>
+  <title>Xin - 1-on-1 Live Video</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,8 +15,9 @@
       --card: #1a1d2e;
       --accent: #ff4757;
       --accent-hover: #ff6b81;
-      --accent-glow: rgba(255, 71, 87, 0.3);
+      --accent-glow: rgba(255, 71, 87, 0.35);
       --green: #2ed573;
+      --green-glow: rgba(46, 213, 115, 0.35);
       --text: #ffffff;
       --text-muted: #8b90a6;
       --border: #25283b;
@@ -33,7 +34,6 @@
       user-select: none;
     }
 
-    /* Outer Wrapper */
     .app-container {
       width: 100%;
       height: 100%;
@@ -43,17 +43,17 @@
       position: relative;
     }
 
-    /* TOP MINIMAL BAR */
+    /* TOP BAR */
     .top-bar {
       height: 48px;
-      background: rgba(19, 21, 32, 0.85);
+      background: rgba(19, 21, 32, 0.9);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 16px;
-      z-index: 20;
+      z-index: 30;
       flex-shrink: 0;
     }
     .brand {
@@ -66,14 +66,14 @@
       color: #fff;
       font-family: 'Rajdhani', sans-serif;
       font-weight: 700;
-      font-size: 15px;
+      font-size: 14px;
       padding: 3px 8px;
       border-radius: 4px;
       letter-spacing: 1px;
     }
     .brand-title {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -96,30 +96,24 @@
     }
 
     /* ==========================================================================
-       MAIN VIDEO STAGE & LAYOUT SYSTEM
-       Three Clean Layout Modes:
-       1. layout-split: 50/50 Dual Video (Side-by-side desktop, stacked mobile)
-       2. layout-pip: Fullscreen Primary + Floating Corner Secondary
-       3. layout-focus: 100% Primary Video Only
+       TWO-SCREEN VIDEO STAGE (MAIN + TOP RIGHT CORNER)
+       Tapping the smaller screen in the top right expands it and minimizes the other.
        ========================================================================== */
     .stage {
       flex: 1;
       position: relative;
       background: #000;
       overflow: hidden;
-      display: flex;
       min-height: 0;
     }
 
-    /* Video Containers */
     .video-box {
-      position: relative;
-      background: #06070a;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      background: #06070a;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .video-box video {
       width: 100%;
@@ -130,18 +124,71 @@
       transform: scaleX(-1);
     }
 
-    /* Video Badges */
+    /* Mode: Stranger is MAIN (default) */
+    .stage.mode-stranger-main #remoteContainer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .stage.mode-stranger-main #localContainer {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 200px;
+      height: 130px;
+      border-radius: 12px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75);
+      z-index: 20;
+      cursor: pointer;
+    }
+
+    /* Mode: You are MAIN */
+    .stage.mode-you-main #localContainer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .stage.mode-you-main #remoteContainer {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 200px;
+      height: 130px;
+      border-radius: 12px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75);
+      z-index: 20;
+      cursor: pointer;
+    }
+
+    @media (max-width: 860px) {
+      .stage.mode-stranger-main #localContainer,
+      .stage.mode-you-main #remoteContainer {
+        top: 12px;
+        right: 12px;
+        width: 110px;
+        height: 155px;
+        border-radius: 10px;
+      }
+    }
+
+    /* Badges */
     .v-badge {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(11, 12, 19, 0.75);
+      top: 10px;
+      left: 10px;
+      background: rgba(11, 12, 19, 0.8);
       border-left: 3px solid var(--accent);
       backdrop-filter: blur(8px);
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 0 4px 4px 0;
       font-family: 'Rajdhani', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 1px;
       color: #fff;
@@ -150,8 +197,28 @@
     .v-badge.local-badge {
       border-left-color: #3b82f6;
     }
+    .expand-hint {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      z-index: 6;
+      pointer-events: none;
+      display: none;
+    }
+    .stage.mode-stranger-main #localContainer .expand-hint,
+    .stage.mode-you-main #remoteContainer .expand-hint {
+      display: block;
+    }
 
-    /* Waiting Screen for Remote Peer */
+    /* Waiting Layer */
     .waiting-layer {
       position: absolute;
       inset: 0;
@@ -166,8 +233,8 @@
       z-index: 4;
     }
     .pulsing-ring {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border: 3px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
@@ -187,112 +254,90 @@
     .wait-desc {
       font-size: 13px;
       color: var(--text-muted);
-      max-width: 340px;
+      max-width: 320px;
       line-height: 1.5;
     }
 
-    /* -------------------------------------------------------------
-       LAYOUT 1: SPLIT 50/50 (Default)
-       Desktop: Side-by-Side (50% | 50%)
-       Mobile: Stacked (Top 50% / Bottom 50%)
-       ------------------------------------------------------------- */
-    .stage.layout-split {
-      flex-direction: row;
-    }
-    .stage.layout-split #remoteContainer {
-      flex: 1;
-      height: 100%;
-      border-right: 2px solid var(--border);
-    }
-    .stage.layout-split #localContainer {
-      flex: 1;
-      height: 100%;
-    }
-
-    @media (max-width: 860px) {
-      .stage.layout-split {
-        flex-direction: column;
-      }
-      .stage.layout-split #remoteContainer {
-        flex: 1;
-        width: 100%;
-        border-right: none;
-        border-bottom: 2px solid var(--border);
-      }
-      .stage.layout-split #localContainer {
-        flex: 1;
-        width: 100%;
-      }
-    }
-
-    /* -------------------------------------------------------------
-       LAYOUT 2: PICTURE-IN-PICTURE (PiP)
-       Stranger is Fullscreen, Your camera is floating in corner.
-       Clicking corner swaps the views!
-       ------------------------------------------------------------- */
-    .stage.layout-pip #remoteContainer {
+    /* ==========================================================================
+       MESSAGE REQUEST PROMPT BANNER (Top Overlay)
+       ========================================================================== */
+    .msg-request-banner {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-    .stage.layout-pip #localContainer {
-      position: absolute;
-      bottom: 84px;
-      right: 16px;
-      width: 220px;
-      height: 130px;
-      border-radius: 10px;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(19, 21, 32, 0.95);
       border: 2px solid var(--accent);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-      z-index: 10;
-      cursor: pointer;
+      border-radius: 12px;
+      padding: 14px 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      max-width: 90%;
+      width: 360px;
+      animation: dropIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    @media (max-width: 860px) {
-      .stage.layout-pip #localContainer {
-        bottom: 80px;
-        right: 12px;
-        width: 130px;
-        height: 180px;
-        border-radius: 8px;
-      }
+    @keyframes dropIn {
+      from { transform: translate(-50%, -20px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
     }
-
-    /* -------------------------------------------------------------
-       LAYOUT 3: INVERTED PiP (You are full screen, Stranger in corner)
-       ------------------------------------------------------------- */
-    .stage.layout-swap #localContainer {
-      position: absolute;
-      inset: 0;
+    .msg-request-banner.active {
+      display: flex;
+    }
+    .banner-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .banner-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .banner-actions {
+      display: flex;
+      gap: 10px;
       width: 100%;
-      height: 100%;
-      z-index: 1;
+      margin-top: 4px;
     }
-    .stage.layout-swap #remoteContainer {
-      position: absolute;
-      bottom: 84px;
-      right: 16px;
-      width: 220px;
-      height: 130px;
-      border-radius: 10px;
-      border: 2px solid var(--accent);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
-      z-index: 10;
+    .banner-btn {
+      flex: 1;
+      height: 38px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
+      transition: all 0.2s;
     }
-    @media (max-width: 860px) {
-      .stage.layout-swap #remoteContainer {
-        bottom: 80px;
-        right: 12px;
-        width: 130px;
-        height: 180px;
-        border-radius: 8px;
-      }
+    .banner-btn-accept {
+      background: var(--green);
+      color: #0b0c13;
+    }
+    .banner-btn-accept:hover {
+      background: #39e380;
+    }
+    .banner-btn-decline {
+      background: #2b181c;
+      color: #ff4757;
+      border: 1px solid #ff4757;
+    }
+    .banner-btn-decline:hover {
+      background: #3d1f25;
     }
 
     /* ==========================================================================
-       BOTTOM FLOATING ACTION CONTROLS BAR (Ultra-Clean, High-Contrast)
+       BOTTOM CONTROLS BAR (Ultra-Clean, High Contrast)
        ========================================================================== */
     .controls-dock {
       position: absolute;
@@ -301,33 +346,32 @@
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: rgba(19, 21, 32, 0.9);
+      gap: 8px;
+      background: rgba(19, 21, 32, 0.92);
       backdrop-filter: blur(14px);
       border: 1px solid var(--border);
       padding: 8px 14px;
       border-radius: 50px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.65);
       z-index: 30;
     }
     @media (max-width: 860px) {
       .controls-dock {
-        width: calc(100% - 20px);
+        width: calc(100% - 16px);
         bottom: 10px;
-        gap: 6px;
-        padding: 8px 10px;
+        gap: 4px;
+        padding: 6px 8px;
         justify-content: space-between;
       }
     }
 
-    /* Action Buttons */
     .c-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 44px;
-      padding: 0 16px;
-      border-radius: 24px;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 22px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
@@ -351,7 +395,7 @@
       background: var(--accent);
       border-color: var(--accent);
       color: #fff;
-      padding: 0 22px;
+      padding: 0 20px;
       box-shadow: 0 0 15px var(--accent-glow);
     }
     .c-btn-next:hover {
@@ -374,42 +418,45 @@
 
     @media (max-width: 860px) {
       .c-btn {
-        height: 40px;
-        padding: 0 10px;
+        height: 38px;
+        padding: 0 8px;
         font-size: 11px;
-        border-radius: 20px;
+        border-radius: 19px;
       }
       .c-btn-next {
-        padding: 0 14px;
+        padding: 0 12px;
       }
     }
 
-    /* Slide-Up Chat Drawer */
+    /* ==========================================================================
+       SLIDE-UP CHAT DRAWER & PERMISSION SYSTEM
+       ========================================================================== */
     .chat-drawer {
       position: absolute;
       bottom: 74px;
       left: 16px;
       width: 360px;
-      height: 380px;
-      background: rgba(19, 21, 32, 0.95);
+      height: 400px;
+      background: rgba(19, 21, 32, 0.96);
       backdrop-filter: blur(16px);
       border: 1px solid var(--border);
       border-radius: 12px;
-      display: flex;
+      display: none;
       flex-direction: column;
       z-index: 40;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-      display: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
     }
     .chat-drawer.open {
       display: flex;
     }
     .chat-header {
-      padding: 10px 14px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: rgba(26, 29, 46, 0.6);
     }
     .chat-header span {
       font-family: 'Rajdhani', sans-serif;
@@ -423,6 +470,7 @@
       border: none;
       color: var(--text-muted);
       font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
       padding: 4px;
     }
@@ -442,18 +490,76 @@
     .msg-sys {
       background: rgba(255, 71, 87, 0.12);
       border-left: 2px solid var(--accent);
-      padding: 4px 8px;
+      padding: 5px 8px;
       color: var(--accent);
       font-size: 11px;
       border-radius: 0 4px 4px 0;
     }
+    .msg-sys.msg-sys-green {
+      background: rgba(46, 213, 115, 0.12);
+      border-left-color: var(--green);
+      color: var(--green);
+    }
     .msg-you span { color: #3b82f6; font-weight: 700; }
     .msg-peer span { color: var(--accent); font-weight: 700; }
+
+    /* Locked Chat Banner inside drawer */
+    .chat-lock-panel {
+      padding: 14px;
+      background: rgba(26, 29, 46, 0.95);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .chat-lock-panel.hidden {
+      display: none;
+    }
+    .chat-lock-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .chat-lock-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .btn-send-request {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-send-request:hover {
+      background: var(--accent-hover);
+    }
+    .btn-send-request:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Input Bar */
     .chat-input-bar {
       padding: 10px;
       border-top: 1px solid var(--border);
       display: flex;
       gap: 6px;
+      background: #0d0f17;
     }
     .chat-input-bar input {
       flex: 1;
@@ -464,6 +570,10 @@
       border-radius: 6px;
       outline: none;
       font-size: 12px;
+    }
+    .chat-input-bar input:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
     .chat-input-bar button {
       background: var(--accent);
@@ -476,6 +586,10 @@
       font-size: 12px;
       cursor: pointer;
     }
+    .chat-input-bar button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
 
     @media (max-width: 860px) {
       .chat-drawer {
@@ -483,7 +597,7 @@
         right: 10px;
         width: auto;
         bottom: 64px;
-        height: 280px;
+        height: 300px;
       }
     }
   </style>
@@ -504,12 +618,23 @@
       </div>
     </header>
 
-    <!-- MAIN VIDEO STAGE (Default layout: layout-split) -->
-    <main class="stage layout-split" id="videoStage">
+    <!-- INCOMING MESSAGE REQUEST POPUP BANNER -->
+    <div class="msg-request-banner" id="msgRequestBanner">
+      <div class="banner-title">Message Request</div>
+      <div class="banner-desc">Stranger wants to message you. Accept request to allow chatting?</div>
+      <div class="banner-actions">
+        <button class="banner-btn banner-btn-accept" onclick="respondChatRequest(true)">Accept</button>
+        <button class="banner-btn banner-btn-decline" onclick="respondChatRequest(false)">Decline</button>
+      </div>
+    </div>
+
+    <!-- MAIN VIDEO STAGE (2 SCREENS ONLY: Main + Smaller Top Right) -->
+    <main class="stage mode-stranger-main" id="videoStage">
 
       <!-- REMOTE STRANGER VIDEO BOX -->
       <div class="video-box" id="remoteContainer" onclick="handleVideoBoxClick('remote')">
         <div class="v-badge" id="remoteBadge">STRANGER // REMOTE</div>
+        <div class="expand-hint">TAP TO EXPAND</div>
         <video id="remoteVideo" autoplay playsinline></video>
 
         <!-- Waiting Layer -->
@@ -522,24 +647,34 @@
 
       <!-- LOCAL USER VIDEO BOX -->
       <div class="video-box" id="localContainer" onclick="handleVideoBoxClick('local')">
-        <div class="v-badge local-badge">YOU // LOCAL</div>
+        <div class="v-badge local-badge" id="localBadge">YOU // LOCAL</div>
+        <div class="expand-hint">TAP TO EXPAND</div>
         <video id="localVideo" autoplay playsinline muted></video>
       </div>
 
     </main>
 
-    <!-- FLOATING CHAT DRAWER -->
+    <!-- SLIDE-UP CHAT DRAWER -->
     <div class="chat-drawer" id="chatDrawer">
       <div class="chat-header">
         <span>Live Peer Chat</span>
         <button class="chat-close" onclick="toggleChat()">X</button>
       </div>
       <div class="chat-logs" id="chatLogs">
-        <div class="msg-line msg-sys">Xin session active. Real camera & microphone enabled.</div>
+        <div class="msg-line msg-sys">Xin session active. Camera and microphone ready.</div>
       </div>
+
+      <!-- Locked Permission Panel -->
+      <div class="chat-lock-panel" id="chatLockPanel">
+        <div class="chat-lock-title" id="lockTitle">Message Request Required</div>
+        <div class="chat-lock-desc" id="lockDesc">The other person must accept your message request for both to converse.</div>
+        <button class="btn-send-request" id="btnSendReq" onclick="sendChatRequest()">Send Message Request</button>
+      </div>
+
+      <!-- Message Input Bar (Disabled until accepted) -->
       <div class="chat-input-bar">
-        <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendChat()">
-        <button onclick="sendChat()">SEND</button>
+        <input type="text" id="chatInput" placeholder="Accept request to message..." disabled onkeydown="if(event.key==='Enter') sendChat()">
+        <button id="btnSendChat" disabled onclick="sendChat()">SEND</button>
       </div>
     </div>
 
@@ -548,8 +683,8 @@
       <!-- 1. Next Stranger -->
       <button class="c-btn c-btn-next" onclick="nextPeer()">NEXT</button>
 
-      <!-- 2. Switch View (Split / PiP / Swap) -->
-      <button class="c-btn" id="btnView" onclick="cycleViewMode()">VIEW: SPLIT</button>
+      <!-- 2. Expand / Swap Screens -->
+      <button class="c-btn" id="btnSwap" onclick="toggleExpand()">SWAP VIEW</button>
 
       <!-- 3. Toggle Microphone -->
       <button class="c-btn active-green" id="btnMic" onclick="toggleMic()">MIC ON</button>
@@ -582,9 +717,11 @@
     let isMicMuted = false;
     let isCamOff = false;
 
-    // View Modes: 'split' -> 'pip' -> 'swap'
-    const viewModes = ['split', 'pip', 'swap'];
-    let currentViewIndex = 0;
+    // View State: 'stranger-main' (default) or 'you-main'
+    let currentLayout = 'stranger-main';
+
+    // Chat Permission State: 'LOCKED', 'SENT', 'ACCEPTED'
+    let chatPermission = 'LOCKED';
 
     const rtcConfig = {
       iceServers: [
@@ -594,7 +731,7 @@
       ]
     };
 
-    // 1. Media Acquisition
+    // 1. Media Acquisition (Real camera & microphone)
     async function initMedia() {
       try {
         if (localStream) {
@@ -608,7 +745,6 @@
         localVid.srcObject = localStream;
         localVid.play().catch(() => {});
 
-        // Re-inject tracks into peer connection if open
         if (peerConnection) {
           localStream.getTracks().forEach(track => {
             const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === track.kind);
@@ -620,39 +756,32 @@
         connectSignaling();
       } catch (err) {
         console.warn('getUserMedia error:', err);
-        addSysLog('Allow camera and microphone access to connect with peer.');
+        addSysLog('Camera and microphone permission required to join call.');
       }
     }
 
-    // 2. View Mode Switcher (Split -> PiP -> Swap)
-    function cycleViewMode() {
-      currentViewIndex = (currentViewIndex + 1) % viewModes.length;
-      applyViewMode(viewModes[currentViewIndex]);
-    }
-
-    function applyViewMode(mode) {
+    // 2. Screen Swapping / Expansion
+    // Tapping the smaller screen in the top right expands it and minimizes the other
+    function toggleExpand() {
       const stage = document.getElementById('videoStage');
-      const btn = document.getElementById('btnView');
-      stage.classList.remove('layout-split', 'layout-pip', 'layout-swap');
-
-      if (mode === 'split') {
-        stage.classList.add('layout-split');
-        btn.textContent = 'VIEW: SPLIT';
-      } else if (mode === 'pip') {
-        stage.classList.add('layout-pip');
-        btn.textContent = 'VIEW: PiP';
-      } else if (mode === 'swap') {
-        stage.classList.add('layout-swap');
-        btn.textContent = 'VIEW: YOU';
+      if (currentLayout === 'stranger-main') {
+        currentLayout = 'you-main';
+        stage.classList.remove('mode-stranger-main');
+        stage.classList.add('mode-you-main');
+        document.getElementById('btnSwap').textContent = 'VIEW: YOU';
+      } else {
+        currentLayout = 'stranger-main';
+        stage.classList.remove('mode-you-main');
+        stage.classList.add('mode-stranger-main');
+        document.getElementById('btnSwap').textContent = 'VIEW: STRANGER';
       }
     }
 
     function handleVideoBoxClick(which) {
-      const stage = document.getElementById('videoStage');
-      if (stage.classList.contains('layout-pip')) {
-        applyViewMode('swap');
-      } else if (stage.classList.contains('layout-swap')) {
-        applyViewMode('pip');
+      if (currentLayout === 'stranger-main' && which === 'local') {
+        toggleExpand();
+      } else if (currentLayout === 'you-main' && which === 'remote') {
+        toggleExpand();
       }
     }
 
@@ -677,7 +806,7 @@
           waitLayer.style.display = 'none';
           statusText.textContent = 'LIVE // CONNECTED';
           statusText.style.color = '#2ed573';
-          addSysLog('Stranger connected with audio and video.');
+          addSysLog('Stranger connected with real video and audio.');
         }
       };
 
@@ -747,6 +876,20 @@
       }
     }
 
+    function sendSignalingEvent(eventType, extra = {}) {
+      if (!partnerId) return;
+      const payload = { type: eventType, target_id: partnerId, ...extra };
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(payload));
+      } else {
+        fetch('/api/signaling/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender_id: userId, target_id: partnerId, type: eventType, extra: extra })
+        }).catch(() => {});
+      }
+    }
+
     async function handleSignal(msg) {
       if (msg.type === 'waiting') {
         document.getElementById('waitTitleText').textContent = 'Searching For Stranger';
@@ -778,11 +921,101 @@
         } else if (sig.type === 'candidate') {
           await peerConnection.addIceCandidate(new RTCIceCandidate(sig.candidate));
         }
+      } else if (msg.type === 'chat_request') {
+        // Stranger is requesting chat permission
+        showChatRequestBanner();
+      } else if (msg.type === 'chat_accept') {
+        // Stranger accepted our chat request
+        unlockChat('accepted');
+      } else if (msg.type === 'chat_decline') {
+        // Stranger declined our chat request
+        handleChatDeclined();
       } else if (msg.type === 'chat') {
-        addPeerLog(msg.user || 'Stranger', msg.text);
+        if (chatPermission === 'ACCEPTED') {
+          addPeerLog(msg.user || 'Stranger', msg.text);
+        }
       } else if (msg.type === 'peer_disconnected') {
         onPeerDisconnected();
       }
+    }
+
+    // 5. Message Request Workflow
+    function sendChatRequest() {
+      if (!partnerId) {
+        addSysLog('Connect to a stranger before requesting chat.');
+        return;
+      }
+      chatPermission = 'SENT';
+      document.getElementById('lockTitle').textContent = 'Message Request Sent';
+      document.getElementById('lockDesc').textContent = 'Waiting for stranger to accept your message request...';
+      const btn = document.getElementById('btnSendReq');
+      btn.disabled = true;
+      btn.textContent = 'Request Pending...';
+
+      addSysLog('Message request sent. Awaiting response.');
+      sendSignalingEvent('chat_request');
+    }
+
+    function showChatRequestBanner() {
+      const banner = document.getElementById('msgRequestBanner');
+      banner.classList.add('active');
+      addSysLog('Stranger sent you a message request.');
+    }
+
+    function respondChatRequest(accepted) {
+      const banner = document.getElementById('msgRequestBanner');
+      banner.classList.remove('active');
+
+      if (accepted) {
+        sendSignalingEvent('chat_accept');
+        unlockChat('self_accepted');
+      } else {
+        sendSignalingEvent('chat_decline');
+        addSysLog('You declined the message request.');
+      }
+    }
+
+    function unlockChat(mode) {
+      chatPermission = 'ACCEPTED';
+      document.getElementById('chatLockPanel').classList.add('hidden');
+      const input = document.getElementById('chatInput');
+      const btn = document.getElementById('btnSendChat');
+      input.disabled = false;
+      btn.disabled = false;
+      input.placeholder = 'Type a message...';
+
+      if (mode === 'accepted') {
+        addSysLog('Stranger accepted your message request. You can now chat.');
+      } else {
+        addSysLog('Message request accepted. You can now chat freely.');
+      }
+    }
+
+    function handleChatDeclined() {
+      chatPermission = 'LOCKED';
+      document.getElementById('lockTitle').textContent = 'Request Declined';
+      document.getElementById('lockDesc').textContent = 'Stranger declined your message request.';
+      const btn = document.getElementById('btnSendReq');
+      btn.disabled = false;
+      btn.textContent = 'Retry Request';
+      addSysLog('Stranger declined message request.');
+    }
+
+    function resetChatPermission() {
+      chatPermission = 'LOCKED';
+      document.getElementById('msgRequestBanner').classList.remove('active');
+      document.getElementById('chatLockPanel').classList.remove('hidden');
+      document.getElementById('lockTitle').textContent = 'Message Request Required';
+      document.getElementById('lockDesc').textContent = 'The other person must accept your message request for both to converse.';
+      const reqBtn = document.getElementById('btnSendReq');
+      reqBtn.disabled = false;
+      reqBtn.textContent = 'Send Message Request';
+
+      const input = document.getElementById('chatInput');
+      const sendBtn = document.getElementById('btnSendChat');
+      input.disabled = true;
+      sendBtn.disabled = true;
+      input.placeholder = 'Accept request to message...';
     }
 
     function onPeerDisconnected() {
@@ -797,6 +1030,8 @@
       statusText.style.color = 'var(--text-muted)';
       addSysLog('Stranger disconnected.');
 
+      resetChatPermission();
+
       if (peerConnection) {
         try { peerConnection.close(); } catch (e) {}
         peerConnection = null;
@@ -804,7 +1039,7 @@
       partnerId = null;
     }
 
-    // 5. Controls Actions
+    // 6. Action Controls
     function nextPeer() {
       onPeerDisconnected();
       document.getElementById('waitTitleText').textContent = 'Searching For Stranger';
@@ -888,6 +1123,7 @@
     }
 
     function sendChat() {
+      if (chatPermission !== 'ACCEPTED') return;
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text) return;

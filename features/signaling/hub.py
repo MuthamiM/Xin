@@ -142,6 +142,25 @@ class SignalingHub:
             self._send_to_user(target_id, chat_msg)
             return True
 
+    def relay_event(self, sender_id, target_id, event_type, extra_data=None):
+        """Relay custom events such as chat_request, chat_accept, chat_decline."""
+        with self.lock:
+            self.touch(sender_id)
+            sender_room = self.user_to_room.get(sender_id)
+            target_room = self.user_to_room.get(target_id)
+            if not sender_room or sender_room != target_room:
+                return False
+
+            msg = {
+                "type": event_type,
+                "sender_id": sender_id,
+                "time": time.strftime("%H:%M")
+            }
+            if extra_data and isinstance(extra_data, dict):
+                msg.update(extra_data)
+            self._send_to_user(target_id, msg)
+            return True
+
     def next_peer(self, user_id):
         """Cycle to a new partner."""
         return self.find_match(user_id)
