@@ -670,7 +670,7 @@
 
       <!-- REMOTE STRANGER VIDEO BOX -->
       <div class="video-box" id="remoteContainer" onclick="handleVideoBoxClick('remote')">
-        <div class="v-badge" id="remoteBadge">STRANGER // REMOTE</div>
+        <div class="v-badge" id="remoteBadge">STRANGER</div>
         <div class="expand-hint">TAP TO EXPAND</div>
         <video id="remoteVideo" autoplay playsinline></video>
 
@@ -684,7 +684,7 @@
 
       <!-- LOCAL USER VIDEO BOX -->
       <div class="video-box" id="localContainer" onclick="handleVideoBoxClick('local')">
-        <div class="v-badge" id="localBadge">YOU // LOCAL</div>
+        <div class="v-badge" id="localBadge">YOU</div>
         <div class="expand-hint">TAP TO EXPAND</div>
         <video id="localVideo" autoplay playsinline muted></video>
       </div>
@@ -715,28 +715,12 @@
       </div>
     </div>
 
-    <!-- CLEAN FLOATING ACTION CONTROLS (Single Blue Scheme) -->
+    <!-- FLOATING ACTION CONTROLS (ONLY NEXT, MIC ON, CAM ON, CHAT) -->
     <nav class="controls-dock">
-      <!-- 1. Next Stranger -->
       <button class="c-btn c-btn-next" onclick="nextPeer()">NEXT</button>
-
-      <!-- 2. Expand / Swap Screens -->
-      <button class="c-btn is-active" id="btnSwap" onclick="toggleExpand()">SWAP VIEW</button>
-
-      <!-- 3. Toggle Microphone (Blue when ON) -->
       <button class="c-btn is-active" id="btnMic" onclick="toggleMic()">MIC ON</button>
-
-      <!-- 4. Toggle Camera (Blue when ON) -->
       <button class="c-btn is-active" id="btnCam" onclick="toggleCam()">CAM ON</button>
-
-      <!-- 5. Flip Camera (Mobile) -->
-      <button class="c-btn" id="btnFlip" onclick="flipCam()">FLIP</button>
-
-      <!-- 6. Chat Drawer Toggle -->
       <button class="c-btn" id="btnChat" onclick="toggleChat()">CHAT</button>
-
-      <!-- 7. Disconnect -->
-      <button class="c-btn c-btn-stop" onclick="disconnect()">STOP</button>
     </nav>
 
   </div>
@@ -856,12 +840,10 @@
         currentLayout = 'you-main';
         stage.classList.remove('mode-stranger-main');
         stage.classList.add('mode-you-main');
-        document.getElementById('btnSwap').textContent = 'VIEW: YOU';
       } else {
         currentLayout = 'stranger-main';
         stage.classList.remove('mode-you-main');
         stage.classList.add('mode-stranger-main');
-        document.getElementById('btnSwap').textContent = 'VIEW: STRANGER';
       }
     }
 
