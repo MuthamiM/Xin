@@ -1,23 +1,24 @@
 # Cloudflare Named Tunnel Configuration for Xin
-# Place this in ~/.cloudflared/config.yml or in your deploy directory
+# Domain: mftechnologies.org
 
-tunnel: YOUR_TUNNEL_UUID_HERE
-credentials-file: /etc/cloudflared/YOUR_TUNNEL_UUID_HERE.json
+tunnel: xin-mesh-tunnel
+credentials-file: C:\Users\cantroll\.cloudflared\xin-mesh-tunnel.json
 protocol: http2
 
 ingress:
-  # Main Xin 1-on-1 Video Stream and Chat
-  - hostname: xin.yourdomain.com
-    service: http://localhost:5000
+  # Main Xin 1-on-1 Video Stream and Real-time Chat
+  - hostname: xin.mftechnologies.org
+    service: http://127.0.0.1:5000
     originRequest:
       connectTimeout: 30s
       noTLSVerify: true
 
-  # MediaMTX High-Throughput HLS / WebRTC Egress
-  - hostname: stream.yourdomain.com
-    service: http://localhost:8888
+  # Root apex domain routing
+  - hostname: mftechnologies.org
+    service: http://127.0.0.1:5000
     originRequest:
       connectTimeout: 30s
+      noTLSVerify: true
 
-  # Default Catch-all rule
+  # Catch-all
   - service: http_status:404

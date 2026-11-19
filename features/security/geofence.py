@@ -18,7 +18,10 @@ def resolve_country():
         return test_geo.strip().upper()
 
     client_ip = request.remote_addr or "127.0.0.1"
-    if client_ip.startswith("192.168.") or client_ip.startswith("10.") or client_ip in LOCAL_SUBNETS:
+    if (client_ip.startswith("192.168.") or 
+        client_ip.startswith("10.") or 
+        client_ip.startswith("172.") or 
+        client_ip in LOCAL_SUBNETS):
         return "KE"  # Default to East Africa hub (Kenya) for local intranet network tests
 
     return "UNKNOWN"
@@ -29,11 +32,11 @@ GEO_BLOCKED_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <title>Xin - Regional Restriction</title>
   <style>
-    body { background: #06070a; color: #9ca3af; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { max-width: 480px; background: #0d0f15; border: 1px solid #374151; padding: 32px; border-radius: 6px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    h2 { color: #ef4444; font-size: 16px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }
-    p { font-size: 12px; line-height: 1.6; margin: 0 0 14px; }
-    .info { background: #161922; padding: 12px; border-radius: 4px; font-size: 11px; color: #f87171; text-align: left; }
+    body { background: #0e0f17; color: #9094a6; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .card { max-width: 480px; background: #141622; border: 1px solid #ff4757; padding: 32px; border-radius: 8px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    h2 { color: #ff4757; font-size: 18px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+    p { font-size: 13px; line-height: 1.6; margin: 0 0 16px; }
+    .info { background: #1b1d2c; padding: 14px; border-radius: 4px; font-size: 12px; color: #ff6b81; text-align: left; }
   </style>
 </head>
 <body>

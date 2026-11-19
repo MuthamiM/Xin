@@ -1,11 +1,14 @@
 import os
 import time
 from flask import Flask, render_template, jsonify
+from flask_sock import Sock
 from core.config import Config
 from features.security.middleware import attach_security_middleware, security_controller
 from features.security.error_handlers import register_error_handlers
 from features.streaming.routes import streaming_bp
 from features.chat.routes import chat_bp
+from features.signaling.routes import signaling_bp, register_socket_routes
+from features.signaling.hub import signaling_hub
 
 def create_app():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,6 +22,10 @@ def create_app():
     )
     app.config.from_object(Config)
 
+    # Attach WebSockets via flask-sock
+    sock = Sock(app)
+    register_socket_routes(sock)
+
     # Attach middleware controllers & error handlers
     attach_security_middleware(app)
     register_error_handlers(app)
@@ -26,6 +33,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(streaming_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(signaling_bp)
 
     @app.route("/")
     def index():
@@ -37,11 +45,13 @@ def create_app():
 
     @app.route("/api/status")
     def api_status():
+        stats = signaling_hub.get_diagnostics()
         return jsonify({
             "platform": Config.PLATFORM_NAME,
             "status": "ONLINE",
             "active_banned_ips": len(security_controller.banned_ips),
             "allowed_regions_count": len(Config.ALLOWED_REGIONS),
+            "signaling": stats,
             "uptime_seconds": int(time.time() - app.start_time)
         })
 
