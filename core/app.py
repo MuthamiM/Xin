@@ -1,6 +1,6 @@
 import os
 import time
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, redirect, jsonify
 from flask_sock import Sock
 from core.config import Config
 from features.security.middleware import attach_security_middleware, security_controller
@@ -39,9 +39,10 @@ def create_app():
     def index():
         return render_template("index.html")
 
+    # Redirect /studio to / so current tabs load clean 1-on-1 call immediately
     @app.route("/studio")
     def studio():
-        return render_template("studio.html")
+        return redirect("/")
 
     @app.route("/api/status")
     def api_status():

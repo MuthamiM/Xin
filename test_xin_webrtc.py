@@ -18,12 +18,18 @@ assert "getUserMedia" in html, "Missing getUserMedia in index.html"
 assert "RTCPeerConnection" in html, "Missing RTCPeerConnection in index.html"
 assert "remoteVideo" in html, "Missing remoteVideo in index.html"
 assert "localVideo" in html, "Missing localVideo in index.html"
-assert "toggleMicrophone" in html, "Missing toggleMicrophone in index.html"
-assert "toggleCamera" in html, "Missing toggleCamera in index.html"
-assert "switchCamera" in html, "Missing switchCamera in index.html"
-print("PASS: Index contains all WebRTC audio/video elements.")
+assert "toggleMic" in html or "toggleMicrophone" in html, "Missing mic toggle in index.html"
+assert "toggleCam" in html or "toggleCamera" in html, "Missing cam toggle in index.html"
+assert "flipCam" in html or "switchCamera" in html, "Missing flip camera in index.html"
+assert "cycleViewMode" in html or "layout-split" in html, "Missing view mode switcher in index.html"
+print("PASS: Index contains all WebRTC audio/video elements and view controls.")
 
-print("[TEST 2] GET /api/status...")
+print("[TEST 2] GET /studio redirects to / ...")
+res = client.get("/studio")
+assert res.status_code == 302, f"Expected 302 redirect, got {res.status_code}"
+print("PASS: /studio redirects cleanly to /.")
+
+print("[TEST 3] GET /api/status...")
 res = client.get("/api/status")
 assert res.status_code == 200
 data = res.get_json()
@@ -32,7 +38,7 @@ assert data["status"] == "ONLINE"
 assert "signaling" in data
 print(f"PASS: API status verified. Signaling info: {data['signaling']}")
 
-print("[TEST 3] Signaling Handshake Simulation (Phone & Laptop)...")
+print("[TEST 4] Signaling Handshake Simulation (Phone & Laptop)...")
 # User 1 (Laptop) joins
 res1 = client.post("/api/signaling/join", json={"user_id": "laptop_user_1"})
 assert res1.status_code == 200
@@ -98,4 +104,4 @@ chat_msgs = res_poll_chat.get_json()["messages"]
 assert any(m.get("type") == "chat" and "Hello from my mobile" in m.get("text", "") for m in chat_msgs)
 print("PASS: Real-time chat message successfully exchanged between peers.")
 
-print("\nALL 3 WEBRTC & SIGNALING TESTS PASSED PERFECTLY!")
+print("\nALL 4 WEBRTC & SIGNALING TESTS PASSED PERFECTLY!")
