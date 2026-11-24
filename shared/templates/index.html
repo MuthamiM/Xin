@@ -283,6 +283,50 @@
       line-height: 1.5;
     }
 
+    /* Local Camera Prompt Overlay */
+    .local-prompt-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11, 15, 24, 0.92);
+      padding: 10px;
+      text-align: center;
+      gap: 8px;
+      z-index: 8;
+      cursor: pointer;
+    }
+    .local-prompt-layer.hidden {
+      display: none;
+    }
+    .prompt-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .prompt-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 0 12px var(--blue-glow);
+      transition: all 0.2s;
+    }
+    .prompt-btn:hover {
+      background: var(--blue-light);
+    }
+
     /* ==========================================================================
        MESSAGE REQUEST PROMPT BANNER (Top Overlay)
        ========================================================================== */
@@ -679,6 +723,7 @@
           <div class="pulsing-ring"></div>
           <div class="wait-title" id="waitTitleText">Searching For Stranger</div>
           <div class="wait-desc" id="waitDescText">Connect from phone and laptop to begin instant 1-on-1 call.</div>
+          <button class="prompt-btn" id="btnMainCamPrompt" style="margin-top: 10px; display: none;" onclick="initMedia();">ALLOW CAMERA & MIC</button>
         </div>
       </div>
 
@@ -687,6 +732,12 @@
         <div class="v-badge" id="localBadge">YOU</div>
         <div class="expand-hint">TAP TO EXPAND</div>
         <video id="localVideo" autoplay playsinline muted></video>
+
+        <!-- Prompt to enable camera if browser blocked autoplay/prompt -->
+        <div class="local-prompt-layer" id="localPromptLayer" onclick="event.stopPropagation(); initMedia();">
+          <div class="prompt-label" id="localPromptText">Camera Offline</div>
+          <button class="prompt-btn" onclick="event.stopPropagation(); initMedia();">ENABLE CAMERA</button>
+        </div>
       </div>
 
     </main>
@@ -788,26 +839,33 @@
       // Connect signaling immediately in parallel so pairing is instant
       connectSignaling();
 
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        addSysLog('Camera API not available. Ensure HTTPS is used.');
+        return;
+      }
+
+      addSysLog('Requesting camera & microphone access...');
+
       try {
         if (localStream) {
           localStream.getTracks().forEach(t => t.stop());
         }
 
-        // Try video + audio first
+        // Try standard constraints first
         try {
           localStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+            video: true,
+            audio: true
           });
         } catch (e1) {
-          // Fallback to basic constraints
+          console.warn('Standard getUserMedia failed, trying specific constraints:', e1);
           try {
             localStream = await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: true
+              video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+              audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
             });
           } catch (e2) {
-            // Audio-only fallback if camera is blocked/busy
+            console.warn('Video failed, falling back to audio only:', e2);
             localStream = await navigator.mediaDevices.getUserMedia({
               audio: true
             });
@@ -815,9 +873,22 @@
         }
 
         const localVid = document.getElementById('localVideo');
+        const localPrompt = document.getElementById('localPromptLayer');
+        const mainPrompt = document.getElementById('btnMainCamPrompt');
+
         if (localStream) {
           localVid.srcObject = localStream;
           localVid.play().catch(() => {});
+
+          if (localPrompt) localPrompt.classList.add('hidden');
+          if (mainPrompt) mainPrompt.style.display = 'none';
+
+          const btnCam = document.getElementById('btnCam');
+          const btnMic = document.getElementById('btnMic');
+          if (btnCam) { btnCam.classList.add('is-active'); btnCam.classList.remove('is-off'); btnCam.textContent = 'CAM ON'; }
+          if (btnMic) { btnMic.classList.add('is-active'); btnMic.classList.remove('is-off'); btnMic.textContent = 'MIC ON'; }
+
+          addSysLog('Camera and microphone enabled.');
 
           if (peerConnection) {
             localStream.getTracks().forEach(track => {
@@ -828,8 +899,23 @@
           }
         }
       } catch (err) {
-        console.warn('getUserMedia error:', err);
-        addSysLog('Allow camera and microphone access to speak and be heard.');
+        console.warn('getUserMedia final error:', err);
+        const localPrompt = document.getElementById('localPromptLayer');
+        const localText = document.getElementById('localPromptText');
+        const mainPrompt = document.getElementById('btnMainCamPrompt');
+        if (localPrompt) localPrompt.classList.remove('hidden');
+        if (mainPrompt) mainPrompt.style.display = 'block';
+
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          if (localText) localText.textContent = 'Camera Blocked';
+          addSysLog('Camera blocked. Click the lock/camera icon in your browser URL bar to allow.');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          if (localText) localText.textContent = 'No Camera Found';
+          addSysLog('No camera hardware found on this device.');
+        } else {
+          if (localText) localText.textContent = 'Camera Offline';
+          addSysLog('Could not access camera: ' + (err.message || 'Check browser permissions.'));
+        }
       }
     }
 
@@ -1178,9 +1264,15 @@
     }
 
     function toggleMic() {
-      if (!localStream) return;
+      if (!localStream) {
+        initMedia();
+        return;
+      }
       const audioTracks = localStream.getAudioTracks();
-      if (!audioTracks.length) return;
+      if (!audioTracks.length) {
+        initMedia();
+        return;
+      }
       isMicMuted = !isMicMuted;
       audioTracks.forEach(t => t.enabled = !isMicMuted);
 
@@ -1197,9 +1289,15 @@
     }
 
     function toggleCam() {
-      if (!localStream) return;
+      if (!localStream) {
+        initMedia();
+        return;
+      }
       const videoTracks = localStream.getVideoTracks();
-      if (!videoTracks.length) return;
+      if (!videoTracks.length) {
+        initMedia();
+        return;
+      }
       isCamOff = !isCamOff;
       videoTracks.forEach(t => t.enabled = !isCamOff);
 
