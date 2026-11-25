@@ -11,8 +11,9 @@ class Config:
     # Security & Banning
     VPN_DETECTION_ENABLED = True
     BAN_DURATION_SECONDS = 900  # 15 minutes
-    RATE_LIMIT_MAX = 80         # requests per minute
+    RATE_LIMIT_MAX = 600        # requests per minute (supports dual-device WebRTC polling behind NAT)
     RATE_LIMIT_WINDOW = 60      # seconds
+    MAX_CONTENT_BYTES = 65536   # 64 KB max JSON/API payload size
     
     # Regional Access Whitelist (ISO country codes)
     ALLOWED_REGIONS = {

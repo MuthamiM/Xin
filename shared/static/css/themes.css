@@ -1,0 +1,61 @@
+/* Xin Shared Theme Tokens & Palette Definitions */
+/* Default and Primary Active Theme: Electric Blue */
+
+:root,
+[data-theme="electric-blue"] {
+  --bg: #090b10;
+  --panel: #111520;
+  --card: #161c2c;
+  --card-hover: #1e263d;
+  --blue: #2563eb;
+  --blue-light: #3b82f6;
+  --blue-glow: rgba(37, 99, 235, 0.45);
+  --blue-subtle: rgba(37, 99, 235, 0.15);
+  --accent: var(--blue);
+  --accent-light: var(--blue-light);
+  --accent-glow: var(--blue-glow);
+  --text: #ffffff;
+  --text-muted: #8490a5;
+  --border: #1e2638;
+  --border-blue: #2563eb;
+  --danger: #ef4444;
+}
+
+/* Optional Alternate Themes exposed via /api/themes */
+[data-theme="cobalt-deep"] {
+  --bg: #050811;
+  --panel: #0c1222;
+  --card: #111b33;
+  --card-hover: #182747;
+  --blue: #1d4ed8;
+  --blue-light: #60a5fa;
+  --blue-glow: rgba(29, 78, 216, 0.5);
+  --blue-subtle: rgba(29, 78, 216, 0.16);
+  --accent: var(--blue);
+  --accent-light: var(--blue-light);
+  --accent-glow: var(--blue-glow);
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #1e293b;
+  --border-blue: #1d4ed8;
+  --danger: #ef4444;
+}
+
+[data-theme="obsidian-steel"] {
+  --bg: #07090d;
+  --panel: #0f131b;
+  --card: #151b26;
+  --card-hover: #1d2534;
+  --blue: #2563eb;
+  --blue-light: #38bdf8;
+  --blue-glow: rgba(37, 99, 235, 0.45);
+  --blue-subtle: rgba(37, 99, 235, 0.14);
+  --accent: var(--blue);
+  --accent-light: var(--blue-light);
+  --accent-glow: var(--blue-glow);
+  --text: #ffffff;
+  --text-muted: #9ca3af;
+  --border: #202837;
+  --border-blue: #2563eb;
+  --danger: #ef4444;
+}

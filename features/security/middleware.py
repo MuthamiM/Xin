@@ -1,7 +1,7 @@
 import time
-from flask import request, jsonify, render_template_string
+from flask import request, jsonify, render_template
 from features.security.vpn_detector import SecurityController
-from features.security.geofence import resolve_country, GEO_BLOCKED_TEMPLATE
+from features.security.geofence import resolve_country
 from core.config import Config
 
 security_controller = SecurityController(
@@ -10,36 +10,22 @@ security_controller = SecurityController(
     rate_window=Config.RATE_LIMIT_WINDOW
 )
 
-BAN_TEMPLATE = """<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Xin - Temporary Suspension</title>
-  <style>
-    body { background: #0e0f17; color: #9094a6; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { max-width: 480px; background: #141622; border: 1px solid #dc2626; padding: 32px; border-radius: 6px; text-align: center; }
-    h2 { color: #ef4444; font-size: 16px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }
-    p { font-size: 12px; line-height: 1.6; margin: 0 0 14px; }
-    .detail { background: #1b1d2c; padding: 12px; border-radius: 4px; font-size: 11px; color: #f87171; text-align: left; margin-bottom: 16px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>Access Temporarily Suspended</h2>
-    <p>Connection rejected by Xin automated security middleware controller.</p>
-    <div class="detail">
-      <div>Reason: {{ reason }}</div>
-      <div>Client Address: {{ ip }}</div>
-      <div>Cooldown Remaining: {{ remaining }} seconds</div>
-    </div>
-    <p style="font-size: 10px; color: #6b7280;">Proxy, VPN anonymizers, and automated scrapers are restricted on this platform.</p>
-  </div>
-</body>
-</html>"""
 
 def attach_security_middleware(app):
     @app.before_request
     def validate_request():
+        # Always allow shared static assets (CSS/JS/icons) cleanly
+        if request.path.startswith("/static/"):
+            return None
+
+        # Reject oversized payloads early
+        if request.content_length and request.content_length > Config.MAX_CONTENT_BYTES:
+            return jsonify({
+                "error": "PayloadTooLarge",
+                "code": 413,
+                "max_bytes": Config.MAX_CONTENT_BYTES
+            }), 413
+
         # Determine real client IP through Cloudflare Tunnel
         client_ip = request.headers.get("CF-Connecting-IP") or request.headers.get("X-Forwarded-For") or request.remote_addr or "127.0.0.1"
         if "," in client_ip:
@@ -55,16 +41,26 @@ def attach_security_middleware(app):
                     "reason": record["reason"],
                     "remaining_seconds": remaining
                 }), 403
-            return render_template_string(BAN_TEMPLATE, reason=record["reason"], ip=client_ip, remaining=remaining), 403
+            return render_template(
+                "errors/error.html",
+                code=403,
+                title="Access Temporarily Suspended",
+                message=f"{record['reason']}. Cooldown remaining: {remaining} seconds."
+            ), 403
 
         # 2. Rate limiting & flood control
-        if not security_controller.evaluate_rate_limit(client_ip):
+        if not security_controller.evaluate_rate_limit(client_ip, request.path):
             if request.path.startswith("/api/"):
                 return jsonify({
                     "error": "RateLimitExceeded",
                     "message": "Excessive request rate. Cooldown active."
                 }), 429
-            return render_template_string(BAN_TEMPLATE, reason="Excessive traffic rate", ip=client_ip, remaining=300), 429
+            return render_template(
+                "errors/error.html",
+                code=429,
+                title="Rate Limit Exceeded",
+                message="Too many requests detected. Temporary cooldown active."
+            ), 429
 
         # 3. VPN / Proxy detection and temporary ban
         is_vpn, reason = security_controller.scan_vpn_proxy(request, client_ip)
@@ -76,7 +72,12 @@ def attach_security_middleware(app):
                     "reason": reason,
                     "ban_seconds": Config.BAN_DURATION_SECONDS
                 }), 403
-            return render_template_string(BAN_TEMPLATE, reason=reason, ip=client_ip, remaining=Config.BAN_DURATION_SECONDS), 403
+            return render_template(
+                "errors/error.html",
+                code=403,
+                title="Connection Restricted",
+                message=reason
+            ), 403
 
         # 4. Regional Geofencing
         country = resolve_country()
@@ -88,4 +89,9 @@ def attach_security_middleware(app):
                     "message": "Access restricted to East Africa, South Africa, and Asia.",
                     "detected_region": country
                 }), 403
-            return render_template_string(GEO_BLOCKED_TEMPLATE, code=country, ip=client_ip), 403
+            return render_template(
+                "errors/error.html",
+                code=403,
+                title="Regional Access Restricted",
+                message=f"Service available in supported territories (Detected: {country})."
+            ), 403

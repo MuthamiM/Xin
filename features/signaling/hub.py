@@ -19,9 +19,11 @@ class SignalingHub:
         self.user_ws = {}                # user_id -> websocket
         self.user_messages = {}          # user_id -> list of message dicts
         self.user_last_seen = {}         # user_id -> float timestamp
+        self.last_partner = {}           # user_id -> last paired peer_id
 
     def touch(self, user_id):
-        self.user_last_seen[user_id] = time.time()
+        if user_id:
+            self.user_last_seen[user_id] = time.time()
 
     def register_client(self, user_id, ws=None):
         with self.lock:
@@ -31,13 +33,19 @@ class SignalingHub:
             if user_id not in self.user_messages:
                 self.user_messages[user_id] = []
 
-    def unregister_client(self, user_id):
+    def unregister_client(self, user_id, ws=None):
         with self.lock:
+            if ws is not None:
+                current_ws = self.user_ws.get(user_id)
+                if current_ws is not None and current_ws is not ws:
+                    return
+                if current_ws is ws:
+                    self.user_ws.pop(user_id, None)
+                    return
             self._cleanup_user(user_id, notify_partner=True)
 
     def _send_to_user(self, user_id, msg):
         """Internal helper to dispatch message to a user via WebSocket or queue."""
-        self.touch(user_id)
         ws = self.user_ws.get(user_id)
         delivered = False
         if ws:
@@ -55,9 +63,9 @@ class SignalingHub:
                 self.user_messages[user_id].pop(0)
 
     def _purge_stale_locked(self):
-        """Remove users who haven't polled or pinged in 10 seconds."""
+        """Remove users who haven't polled or pinged in 8 seconds."""
         now = time.time()
-        stale_timeout = 10.0
+        stale_timeout = 8.0
         stale_users = [
             uid for uid, ts in self.user_last_seen.items()
             if (now - ts) > stale_timeout
@@ -68,12 +76,12 @@ class SignalingHub:
     def _try_match_waiting_locked(self):
         """Match pairs from the waiting queue immediately."""
         now = time.time()
-        # Clean queue of stale or already-paired users
+        # Clean queue of stale, duplicates, or already-paired users
         clean_queue = []
         for uid in self.waiting_queue:
             if uid in self.user_to_room:
                 continue
-            if (now - self.user_last_seen.get(uid, 0)) <= 10.0:
+            if (now - self.user_last_seen.get(uid, 0)) <= 8.0:
                 if uid not in clean_queue:
                     clean_queue.append(uid)
         self.waiting_queue = clean_queue
@@ -81,10 +89,19 @@ class SignalingHub:
         matched_pairs = []
         while len(self.waiting_queue) >= 2:
             u1 = self.waiting_queue.pop(0)
-            u2 = self.waiting_queue.pop(0)
+            # If 2+ other users remain, prefer someone other than u1's last partner
+            u2 = None
+            if len(self.waiting_queue) >= 2:
+                last_p = self.last_partner.get(u1)
+                for idx, candidate in enumerate(self.waiting_queue):
+                    if candidate != u1 and candidate != last_p:
+                        u2 = self.waiting_queue.pop(idx)
+                        break
+            if u2 is None:
+                u2 = self.waiting_queue.pop(0)
+
             if u1 == u2:
-                self.waiting_queue.append(u1)
-                break
+                continue
 
             room_id = f"room-{uuid.uuid4().hex[:8]}"
             self.rooms[room_id] = {
@@ -94,6 +111,8 @@ class SignalingHub:
             }
             self.user_to_room[u1] = room_id
             self.user_to_room[u2] = room_id
+            self.last_partner[u1] = u2
+            self.last_partner[u2] = u1
 
             # u1 is initiator (creates SDP offer)
             self._send_to_user(u1, {
@@ -114,6 +133,17 @@ class SignalingHub:
             matched_pairs.append((u1, u2))
 
         return matched_pairs
+
+    def _resolve_target_locked(self, sender_id, target_id):
+        if target_id and target_id in self.user_last_seen:
+            return target_id
+        room_id = self.user_to_room.get(sender_id)
+        if room_id and room_id in self.rooms:
+            peers = self.rooms[room_id].get("peers", [])
+            for p in peers:
+                if p != sender_id and p in self.user_last_seen:
+                    return p
+        return None
 
     def find_match(self, user_id):
         """Put the user in queue and immediately pair with any available peer."""
@@ -136,20 +166,34 @@ class SignalingHub:
             else:
                 self._send_to_user(user_id, {
                     "type": "waiting",
+                    "queue_count": len(self.waiting_queue),
                     "message": "In lobby queue. Waiting for remote peer to connect."
                 })
-                return {"status": "waiting"}
+                return {"status": "waiting", "queue_count": len(self.waiting_queue)}
+
+    def heartbeat(self, user_id):
+        """Called on WebSocket ping to keep session alive, purge ghosts, and auto-match."""
+        with self.lock:
+            self.touch(user_id)
+            self._purge_stale_locked()
+            if user_id not in self.user_to_room and user_id not in self.waiting_queue:
+                self.waiting_queue.append(user_id)
+            self._try_match_waiting_locked()
+            return {
+                "type": "pong",
+                "in_room": user_id in self.user_to_room,
+                "queue_count": len(self.waiting_queue)
+            }
 
     def relay_signal(self, sender_id, target_id, signal_data):
         """Relay SDP Offer, Answer, or ICE candidate directly to the peer."""
         with self.lock:
             self.touch(sender_id)
-            sender_room = self.user_to_room.get(sender_id)
-            target_room = self.user_to_room.get(target_id)
-            if not sender_room or sender_room != target_room:
+            resolved = self._resolve_target_locked(sender_id, target_id)
+            if not resolved:
                 return False
 
-            self._send_to_user(target_id, {
+            self._send_to_user(resolved, {
                 "type": "signal",
                 "sender_id": sender_id,
                 "data": signal_data
@@ -160,9 +204,8 @@ class SignalingHub:
         """Relay real-time chat message to the peer."""
         with self.lock:
             self.touch(sender_id)
-            sender_room = self.user_to_room.get(sender_id)
-            target_room = self.user_to_room.get(target_id)
-            if not sender_room or sender_room != target_room:
+            resolved = self._resolve_target_locked(sender_id, target_id)
+            if not resolved:
                 return False
 
             chat_msg = {
@@ -172,16 +215,15 @@ class SignalingHub:
                 "text": text,
                 "time": time.strftime("%H:%M")
             }
-            self._send_to_user(target_id, chat_msg)
+            self._send_to_user(resolved, chat_msg)
             return True
 
     def relay_event(self, sender_id, target_id, event_type, extra_data=None):
         """Relay custom events such as chat_request, chat_accept, chat_decline."""
         with self.lock:
             self.touch(sender_id)
-            sender_room = self.user_to_room.get(sender_id)
-            target_room = self.user_to_room.get(target_id)
-            if not sender_room or sender_room != target_room:
+            resolved = self._resolve_target_locked(sender_id, target_id)
+            if not resolved:
                 return False
 
             msg = {
@@ -191,7 +233,7 @@ class SignalingHub:
             }
             if extra_data and isinstance(extra_data, dict):
                 msg.update(extra_data)
-            self._send_to_user(target_id, msg)
+            self._send_to_user(resolved, msg)
             return True
 
     def next_peer(self, user_id):
@@ -201,11 +243,11 @@ class SignalingHub:
     def leave(self, user_id):
         """Disconnect from active room."""
         with self.lock:
-            self.touch(user_id)
             self._cleanup_user(user_id, notify_partner=True)
             return {"status": "disconnected"}
 
     def _leave_room_locked(self, user_id, notify_partner=True):
+        now = time.time()
         room_id = self.user_to_room.pop(user_id, None)
         if room_id and room_id in self.rooms:
             room = self.rooms.pop(room_id, None)
@@ -213,14 +255,15 @@ class SignalingHub:
                 for peer_id in room["peers"]:
                     if peer_id != user_id:
                         self.user_to_room.pop(peer_id, None)
-                        if notify_partner:
+                        is_alive = (now - self.user_last_seen.get(peer_id, 0)) <= 8.0
+                        if notify_partner and is_alive:
                             self._send_to_user(peer_id, {
                                 "type": "peer_disconnected",
+                                "room_id": room_id,
                                 "message": "Remote peer has disconnected."
                             })
-                        # Re-queue partner automatically so they don't sit stranded
-                        if peer_id not in self.waiting_queue:
-                            self.waiting_queue.append(peer_id)
+                            if peer_id not in self.waiting_queue:
+                                self.waiting_queue.append(peer_id)
 
     def _cleanup_user(self, user_id, notify_partner=True):
         if user_id in self.waiting_queue:
@@ -229,6 +272,7 @@ class SignalingHub:
         self.user_ws.pop(user_id, None)
         self.user_messages.pop(user_id, None)
         self.user_last_seen.pop(user_id, None)
+        self.last_partner.pop(user_id, None)
 
     def poll_messages(self, user_id):
         """HTTP polling endpoint with auto-queue and auto-matchmaking."""
@@ -241,6 +285,7 @@ class SignalingHub:
                 self.waiting_queue.append(user_id)
                 self._send_to_user(user_id, {
                     "type": "waiting",
+                    "queue_count": len(self.waiting_queue),
                     "message": "In lobby queue. Waiting for remote peer to connect."
                 })
 
@@ -253,7 +298,7 @@ class SignalingHub:
     def get_diagnostics(self):
         with self.lock:
             now = time.time()
-            active_users = sum(1 for ts in self.user_last_seen.values() if now - ts < 10.0)
+            active_users = sum(1 for ts in self.user_last_seen.values() if now - ts < 8.0)
             return {
                 "active_users": active_users,
                 "waiting_in_lobby": len(self.waiting_queue),

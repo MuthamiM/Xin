@@ -72,21 +72,21 @@ def register_socket_routes(sock):
                     signaling_hub.leave(user_id)
 
                 elif msg_type == "ping":
-                    signaling_hub.touch(user_id)
-                    ws.send(json.dumps({"type": "pong"}))
+                    pong = signaling_hub.heartbeat(user_id)
+                    ws.send(json.dumps(pong))
 
         except Exception:
             pass
         finally:
             if user_id:
-                signaling_hub.unregister_client(user_id)
+                signaling_hub.unregister_client(user_id, ws=ws)
 
 
 # HTTP REST Fallback Endpoints
 
 @signaling_bp.route("/api/signaling/join", methods=["POST"])
 def http_join():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     user_id = data.get("user_id")
     if not user_id:
         return jsonify({"error": "Missing user_id", "code": 400}), 400
@@ -97,7 +97,7 @@ def http_join():
 
 @signaling_bp.route("/api/signaling/signal", methods=["POST"])
 def http_signal():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     sender_id = data.get("sender_id")
     target_id = data.get("target_id")
     signal_data = data.get("data")
@@ -110,7 +110,7 @@ def http_signal():
 
 @signaling_bp.route("/api/signaling/chat", methods=["POST"])
 def http_chat():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     sender_id = data.get("sender_id")
     target_id = data.get("target_id")
     user_name = data.get("user", "You")
@@ -124,7 +124,7 @@ def http_chat():
 
 @signaling_bp.route("/api/signaling/event", methods=["POST"])
 def http_event():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     sender_id = data.get("sender_id")
     target_id = data.get("target_id")
     event_type = data.get("type")
@@ -147,7 +147,7 @@ def http_poll():
 
 @signaling_bp.route("/api/signaling/next", methods=["POST"])
 def http_next():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     user_id = data.get("user_id")
     if not user_id:
         return jsonify({"error": "Missing user_id", "code": 400}), 400
@@ -157,7 +157,7 @@ def http_next():
 
 @signaling_bp.route("/api/signaling/leave", methods=["POST"])
 def http_leave():
-    data = request.json or {}
+    data = request.get_json(force=True, silent=True) or {}
     user_id = data.get("user_id")
     if not user_id:
         return jsonify({"error": "Missing user_id", "code": 400}), 400
